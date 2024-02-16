@@ -88,7 +88,7 @@ public:
 
 class CGravity {
 public:
-	float gravity = 5.f;
+	float gravity = 2000.f;
 	bool has = false;
 
 	CGravity(){}
