@@ -20,7 +20,7 @@ public:
 	
 	void init();
 	void run();
-	void update();
+	void update(float);
 	Scene* currentScene();
 	void quit();
 	void changeScene(Scenes::Type scene, std::shared_ptr<Scene> s);

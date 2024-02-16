@@ -27,7 +27,7 @@ public:
 		m_CurrentFrame() {
 	}
 
-	virtual void update() = 0;
+	virtual void update(float dt) = 0;
 	virtual void sDoAction(const Action&) = 0;
 	virtual void sRender() = 0;
 

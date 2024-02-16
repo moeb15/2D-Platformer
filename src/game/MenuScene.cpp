@@ -65,7 +65,7 @@ void MenuScene::init() {
 	
 }
 
-void MenuScene::update(){
+void MenuScene::update(float dt){
 	for (auto& elem : m_Options) {
 		elem.setFillColor(sf::Color::White);
 	}

@@ -23,7 +23,7 @@ private:
 public:
 	MenuScene(GameEngine* gameEngine);
 
-	virtual void update();
+	virtual void update(float dt);
 	virtual void sDoAction(const Action&);
 	virtual void sRender();
 

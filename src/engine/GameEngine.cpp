@@ -23,15 +23,18 @@ void GameEngine::init() {
 }
 
 void GameEngine::run() {
+	sf::Time dt;
+	sf::Clock clock;
 	while (m_Running) {
+		dt = clock.restart();
 		sUserInput();
-		update();
+		update(dt.asSeconds());
 		currentScene()->sRender();
 	}
 }
 
-void GameEngine::update(){
-	currentScene()->update();
+void GameEngine::update(float dt){
+	currentScene()->update(dt);
 }
 
 void GameEngine::quit() {

@@ -9,9 +9,6 @@
 GameScene::GameScene(GameEngine* gameEngine, const std::string& levelPath) :
 	Scene(gameEngine),
 	m_Level(levelPath),
-	m_GameFrame(0),
-	m_JumpFrame(0),
-	m_JumpTime(60),
 	m_GameView(m_GameEngine->getWindow().getDefaultView()),
 	m_GridSize(64, 64){
 
@@ -192,12 +189,11 @@ void GameScene::addTile(std::vector<std::string>& fileEntities, const std::strin
 	}
 }
 
-void GameScene::update(){
-	m_GameFrame++;
+void GameScene::update(float dt){
 	m_EntityManager.update();
 	//std::cout << m_EntityManager.getEntities().size() << std::endl;
 	
-	sMovement();
+	sMovement(dt);
 	sDraggable();
 	sCollision();
 	sAnimation();
@@ -231,7 +227,6 @@ void GameScene::sAnimation() {
 	}
 	if (m_Player->getComponent<CState>().state == States::Air) {
 		m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Jump));
-		m_JumpTime++;
 	}
 
 	for (auto& e : m_EntityManager.getEntities()) {
@@ -259,12 +254,9 @@ void GameScene::sDoAction(const Action& action){
 			m_Player->getComponent<CInput>().left = true;
 		}
 		if (action.getName() == Actions::Jump) {
-			if (m_Player->getComponent<CState>().state != States::Air
-					&& m_GameFrame - m_JumpFrame > 10) {
+			if (m_Player->getComponent<CState>().state != States::Air) {
 				m_Player->getComponent<CState>().state = States::Air;
 				m_Player->getComponent<CInput>().up = true;
-				m_JumpFrame = m_GameFrame;
-				m_JumpTime = 60;
 			}
 		}
 		if (action.getName() == Actions::ToggleBox) {
@@ -296,30 +288,30 @@ void GameScene::sDoAction(const Action& action){
 	}
 }
 
-void GameScene::sMovement(){
+void GameScene::sMovement(float dt){
 	Vec2 playerVel;
 	if (m_Player->getComponent<CInput>().right) {
-		if (m_Player->getComponent<CTransform>().velocity.x < 12) {
-			playerVel.x = m_Player->getComponent<CTransform>().velocity.x + 3;
+		if (m_Player->getComponent<CTransform>().velocity.x < 400) {
+			playerVel.x = m_Player->getComponent<CTransform>().velocity.x + 100;
 		}
 		else {
-			playerVel.x = 12;
+			playerVel.x = 400;
 		}
 	}
 
 	if (m_Player->getComponent<CInput>().left) {
-		if (m_Player->getComponent<CTransform>().velocity.x > -12) {
-			playerVel.x = m_Player->getComponent<CTransform>().velocity.x - 3;
+		if (m_Player->getComponent<CTransform>().velocity.x > -400) {
+			playerVel.x = m_Player->getComponent<CTransform>().velocity.x - 100;
 		}
 		else {
-			playerVel.x = -12;
+			playerVel.x = -400;
 		}
 	}
 
 	if (m_Player->getComponent<CInput>().up &&
 		m_Player->getComponent<CTransform>().velocity.y >= 0 &&
 		m_Player->getComponent<CState>().state == States::Ground) {
-		playerVel.y = -45;
+		playerVel.y = -850;
 		m_Player->getComponent<CState>().state = States::Air;
 	}
 	else {
@@ -340,11 +332,10 @@ void GameScene::sMovement(){
 	for (auto& e : m_EntityManager.getEntities()) {
 		e->getComponent<CTransform>().prevPos = e->getComponent<CTransform>().pos;
 		if (e->hasComponent<CGravity>()) {
-			e->getComponent<CTransform>().velocity.y += e->getComponent<CGravity>().gravity *
-				((float)m_JumpTime / 60.f) * ((float)m_JumpTime / 60.f) * 0.5f;
+			e->getComponent<CTransform>().velocity.y += e->getComponent<CGravity>().gravity * dt * 0.5f;
 		}
 		e->getComponent<CTransform>().pos = e->getComponent<CTransform>().pos +
-			e->getComponent<CTransform>().velocity;
+			e->getComponent<CTransform>().velocity * dt;
 	}
 }
 
@@ -378,7 +369,6 @@ void GameScene::sCollision(){
 			}
 			else if(m_Player->getComponent<CTransform>().pos.y > 
 				m_GameEngine->getWindow().getSize().y - m_Player->getComponent<CBoundingBox>().size.y) {
-				m_JumpTime = 60;
 				m_Player->getComponent<CState>().state = States::Air;
 			}
 		}
@@ -395,7 +385,6 @@ void GameScene::sCollision(){
 				if (prevOverlap.x > 0) {
 					m_Player->getComponent<CTransform>().pos.y -= overlap.y;
 					m_Player->getComponent<CTransform>().velocity.y = 0;
-					m_JumpTime = 60;
 					m_Player->getComponent<CState>().state = States::Ground;
 				}
 				else if (prevOverlap.y > 0) {
@@ -416,7 +405,6 @@ void GameScene::sCollision(){
 				if (prevOverlap.x > 0) {
 					m_Player->getComponent<CTransform>().pos.y -= overlap.y;
 					m_Player->getComponent<CTransform>().velocity.y = 0;
-					m_JumpTime = 60;
 					m_Player->getComponent<CState>().state = States::Ground;
 				}
 				else if (prevOverlap.y > 0) {
