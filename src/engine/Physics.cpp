@@ -43,3 +43,14 @@ Vec2 Physics::GetPreviousOverlap(std::shared_ptr<Entity> e1, std::shared_ptr<Ent
 	}
 	return Vec2();
 }
+
+bool Physics::IsInside(Vec2 pos, std::shared_ptr<Entity> e) {
+	auto& transform = e->getComponent<CTransform>();
+	auto& size = e->getComponent<CAnimation>().animation.getSize();
+	//std::cout << size.x << " " << size.y << std::endl;
+
+	float dx = fabsf(transform.pos.x - pos.x + size.x / 2);
+	float dy = fabsf(transform.pos.y - pos.y + size.y / 2);
+
+	return (dx <= size.x / 2) && (dy <= size.y / 2);
+}

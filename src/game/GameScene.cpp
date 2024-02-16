@@ -6,18 +6,6 @@
 #include <fstream>
 #include <sstream>
 
-
-bool IsInside(Vec2 pos, std::shared_ptr<Entity> e) {
-	auto& transform = e->getComponent<CTransform>();
-	auto& size = e->getComponent<CAnimation>().animation.getSize();
-	//std::cout << size.x << " " << size.y << std::endl;
-
-	float dx = fabsf(transform.pos.x - pos.x + size.x / 2);
-	float dy = fabsf(transform.pos.y - pos.y + size.y / 2);
-	
-	return (dx <= size.x / 2) && (dy <= size.y / 2);
-}
-
 GameScene::GameScene(GameEngine* gameEngine, const std::string& levelPath) :
 	Scene(gameEngine),
 	m_Level(levelPath),
@@ -285,7 +273,7 @@ void GameScene::sDoAction(const Action& action){
 		if (action.getName() == Actions::MouseLeft) {
 			Vec2 m_Pos = windowToWorld(action.getPos());
 			for (auto& e : m_EntityManager.getEntities()) {
-				if (e->hasComponent<CDraggable>() && IsInside(m_Pos, e)) {
+				if (e->hasComponent<CDraggable>() && Physics::IsInside(m_Pos, e)) {
 					e->getComponent<CDraggable>().dragging = !e->getComponent<CDraggable>().dragging;
 				}
 			}
