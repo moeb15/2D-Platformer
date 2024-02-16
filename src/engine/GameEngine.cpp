@@ -1,5 +1,5 @@
-#include "GameEngine.h"
-#include "MenuScene.h"
+#include "engine/GameEngine.h"
+#include "game/MenuScene.h"
 #include <memory>
 
 

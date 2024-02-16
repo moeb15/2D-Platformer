@@ -1,7 +1,7 @@
 #pragma once
-#include "Scene.h"
-#include "Entity.h"
-#include "EntityManager.h"
+#include "engine/Scene.h"
+#include "engine/Entity.h"
+#include "engine/EntityManager.h"
 #include <memory>
 
 

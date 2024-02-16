@@ -1,6 +1,6 @@
-#include "MenuScene.h"
-#include "GameScene.h"
-#include "GameEngine.h"
+#include "game/MenuScene.h"
+#include "game/GameScene.h"
+#include "engine/GameEngine.h"
 
 MenuScene::MenuScene(GameEngine* gameEngine):
 	Scene(gameEngine),

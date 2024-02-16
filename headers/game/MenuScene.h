@@ -1,5 +1,5 @@
 #pragma once
-#include "Scene.h"
+#include "engine/Scene.h"
 #include <vector>
 #include <string>
 #include <SFML/Graphics.hpp>

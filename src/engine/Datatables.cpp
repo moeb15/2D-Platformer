@@ -1,5 +1,5 @@
-#include "Datatables.h"
-#include "ObjectTypes.h"
+#include "engine/Datatables.h"
+#include "engine/ObjectTypes.h"
 
 
 std::vector<AnimationData> initializeAnimationData() {

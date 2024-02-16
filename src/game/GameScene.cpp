@@ -1,7 +1,7 @@
-#include "GameScene.h"
-#include "GameEngine.h"
-#include "MenuScene.h"
-#include "Physics.h"
+#include "game/GameScene.h"
+#include "engine/GameEngine.h"
+#include "game/MenuScene.h"
+#include "engine/Physics.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
