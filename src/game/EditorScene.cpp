@@ -85,12 +85,33 @@ void EditorScene::update(float dt){
 
 void EditorScene::sDoAction(const Action& action){
 	if (action.getType() == Actions::Start) {
-		for (auto& e : m_EntityManager.getEntities()) {
-			auto mPos = windowToWorld(action.getPos());
-			if (e->hasComponent<CDraggable>() && Physics::IsInside(mPos, e)) {
-				if (e->hasComponent<CDraggable>()) {
-					e->getComponent<CDraggable>().dragging = 
-						!e->getComponent<CDraggable>().dragging;
+		if (action.getName() == Actions::Quit) {
+			m_GameEngine->changeScene(Scenes::Main, nullptr);
+		}
+		if (action.getName() == Actions::Left) {
+			auto windowSize = m_GameEngine->getWindow().getSize();
+			auto viewCenter = m_EditorView.getCenter();
+			if (viewCenter.x > windowSize.x / 2.f) {
+				viewCenter.x -= 64;
+			}
+			else {
+				viewCenter.x = windowSize.x / 2.f;
+			}
+			m_EditorView.setCenter(viewCenter);
+		}
+		if (action.getName() == Actions::Right) {
+			auto viewCenter = m_EditorView.getCenter();
+			viewCenter.x += 64;
+			m_EditorView.setCenter(viewCenter);
+		}
+		if (action.getName() == Actions::MouseLeft) {
+			for (auto& e : m_EntityManager.getEntities()) {
+				auto mPos = windowToWorld(action.getPos());
+				if (e->hasComponent<CDraggable>() && Physics::IsInside(mPos, e)) {
+					if (e->hasComponent<CDraggable>()) {
+						e->getComponent<CDraggable>().dragging =
+							!e->getComponent<CDraggable>().dragging;
+					}
 				}
 			}
 		}
