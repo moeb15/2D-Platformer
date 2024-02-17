@@ -41,6 +41,7 @@ namespace Scenes {
 	enum Type {
 		Main,
 		Game,
+		Editor,
 	};
 }
 
