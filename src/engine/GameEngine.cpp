@@ -23,6 +23,7 @@ void GameEngine::init() {
 }
 
 void GameEngine::run() {
+	ImGui::SFML::Init(m_Window);
 	sf::Time dt;
 	sf::Clock clock;
 	while (m_Running) {
@@ -31,6 +32,7 @@ void GameEngine::run() {
 		update(dt.asSeconds());
 		currentScene()->sRender();
 	}
+	ImGui::SFML::Shutdown();
 }
 
 void GameEngine::update(float dt){
@@ -44,7 +46,10 @@ void GameEngine::quit() {
 
 void GameEngine::changeScene(Scenes::Type scene, std::shared_ptr<Scene> s) {
 	m_CurrentScene = scene;
-	m_SceneMap[m_CurrentScene] = s;
+	auto found = m_SceneMap.find(m_CurrentScene);
+	if (found == m_SceneMap.end()) {
+		m_SceneMap[m_CurrentScene] = s;
+	}
 }
 
 Scene* GameEngine::currentScene() {
@@ -62,6 +67,7 @@ Assets& GameEngine::getAssets() {
 void GameEngine::sUserInput(){
 	sf::Event event;
 	while (m_Window.pollEvent(event)) {
+		ImGui::SFML::ProcessEvent(event);
 		if (event.type == sf::Event::Closed) {
 			quit();
 		}
