@@ -139,7 +139,7 @@ void EditorScene::addBox() {
 
 	std::shared_ptr<Entity> e = m_EntityManager.addEntity(Entities::QuestionBox);
 	e->addComponent<CTransform>();
-	e->getComponent<CTransform>().pos.x = posn.x * size.x;
+	e->getComponent<CTransform>().pos.x = posn.x * 64;
 	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 1) * size.y;
 	e->getComponent<CTransform>().has = true;
 	e->addComponent<CDraggable>();
@@ -199,6 +199,14 @@ void EditorScene::sDoAction(const Action& action){
 						e->getComponent<CDraggable>().dragging =
 							!e->getComponent<CDraggable>().dragging;
 					}
+				}
+			}
+		}
+		if (action.getName() == Actions::MouseRight) {
+			for (auto& e : m_EntityManager.getEntities()) {
+				auto mPos = windowToWorld(action.getPos());
+				if (Physics::IsInside(mPos, e)) {
+					e->destroy();
 				}
 			}
 		}
