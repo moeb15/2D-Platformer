@@ -11,8 +11,11 @@ std::vector<AnimationData> initializeAnimationData() {
 	data[Animations::Jump].frameCount = 1;
 	data[Animations::Jump].duration = 60;
 
-	data[Animations::Run].frameCount = 3;
+	data[Animations::Run].frameCount = 4;
 	data[Animations::Run].duration = 5;
+
+	data[Animations::RunLeft].frameCount = 4;
+	data[Animations::RunLeft].duration = 5;
 
 	data[Animations::QuestionBox].frameCount = 4;
 	data[Animations::QuestionBox].duration = 15;

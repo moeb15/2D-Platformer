@@ -50,6 +50,7 @@ namespace Animations {
 	enum Type {
 		Idle,
 		Run,
+		RunLeft,
 		Jump,
 		Shoot,
 		Tile,

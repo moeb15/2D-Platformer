@@ -6,12 +6,14 @@ namespace Textures {
 	enum ID{
 		Idle,
 		Run,
+		RunLeft,
 		Jump,
 		Shoot,
 		Brick,
 		Ground,
 		Explosion,
-		QuestionBox
+		QuestionBox,
+		Background,
 	};
 }
 
