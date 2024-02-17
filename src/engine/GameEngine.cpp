@@ -50,6 +50,9 @@ void GameEngine::changeScene(Scenes::Type scene, std::shared_ptr<Scene> s) {
 	if (found == m_SceneMap.end()) {
 		m_SceneMap[m_CurrentScene] = s;
 	}
+	else if(s != nullptr) {
+		m_SceneMap[m_CurrentScene] = s;
+	}
 }
 
 Scene* GameEngine::currentScene() {
