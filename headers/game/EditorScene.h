@@ -19,4 +19,5 @@ public:
 	virtual void sDoAction(const Action& action);
 	void sDraggable();
 	void saveScene();
+	void sceneEditor();
 };
