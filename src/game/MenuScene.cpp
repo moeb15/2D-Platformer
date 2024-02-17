@@ -2,6 +2,7 @@
 #include "game/GameScene.h"
 #include "engine/GameEngine.h"
 #include "game/EditorScene.h"
+#include "game/CustomLevelScene.h"
 
 MenuScene::MenuScene(GameEngine* gameEngine):
 	Scene(gameEngine),
@@ -101,6 +102,13 @@ void MenuScene::sDoAction(const Action& action){
 
 				m_GameEngine->changeScene(Scenes::Game,
 					std::static_pointer_cast<Scene>(gameScene));
+			}
+			if (m_OptionIndex == 3) {
+				std::shared_ptr<CustomLevelScene> customLvls(
+					new CustomLevelScene(m_GameEngine));
+
+				m_GameEngine->changeScene(Scenes::CustomLevels,
+					std::static_pointer_cast<Scene>(customLvls));
 			}
 			if (m_OptionIndex == 4) {
 				std::shared_ptr<EditorScene> lvlEditor(
