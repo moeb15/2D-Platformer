@@ -42,6 +42,7 @@ namespace Scenes {
 		Main,
 		Game,
 		Editor,
+		CustomLevels,
 	};
 }
 
