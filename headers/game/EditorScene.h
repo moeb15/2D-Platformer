@@ -10,6 +10,7 @@ private:
 	EntityManager m_EntityManager;
 	Vec2 m_MousePos;
 	sf::CircleShape m_MouseShape;
+	sf::View m_EditorView;
 
 public:
 	EditorScene(GameEngine*);
@@ -20,4 +21,10 @@ public:
 	void sDraggable();
 	void saveScene();
 	void sceneEditor();
+
+private:
+	Vec2 windowToWorld(const Vec2& window) const;
+	void loadAssets();
+	void addGround();
+	void init();
 };
