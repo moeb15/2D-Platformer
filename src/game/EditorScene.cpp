@@ -45,6 +45,12 @@ void EditorScene::sceneEditor() {
 	if (ImGui::Button("Ground Tile")) {
 		addGround();
 	}
+	if (ImGui::Button("Brick Tile")) {
+		addBrick();
+	}
+	if (ImGui::Button("Question Box Tile")) {
+		addBox();
+	}
 
 	ImGui::End();
 }
@@ -55,7 +61,7 @@ void EditorScene::addGround() {
 	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Ground);
 	Vec2 size(texture.getSize().x, texture.getSize().y);
 
-	auto e = m_EntityManager.addEntity(Entities::Floor);
+	std::shared_ptr<Entity> e = m_EntityManager.addEntity(Entities::Floor);
 	e->addComponent<CTransform>();
 	e->getComponent<CTransform>().pos.x = posn.x * size.x;
 	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 1) * size.y;
@@ -68,19 +74,66 @@ void EditorScene::addGround() {
 		e->getComponent<CTransform>().pos.y
 	));
 	e->getComponent<CAnimation>().animation.setRepeat(true);
+}
 
+void EditorScene::addBrick() {
+	auto m_WindowSize = m_GameEngine->getWindow().getSize();
+	Vec2 posn(1, 1);
+	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Brick);
+	Vec2 size(texture.getSize().x, texture.getSize().y);
 
-	e->addComponent<CBoundingBox>();
-	e->getComponent<CBoundingBox>().has = true;
-	e->getComponent<CBoundingBox>().size.x = size.x;
-	e->getComponent<CBoundingBox>().size.y = size.y;
+	std::shared_ptr<Entity> e = m_EntityManager.addEntity(Entities::Tile);
+	e->addComponent<CTransform>();
+	e->getComponent<CTransform>().pos.x = posn.x * size.x;
+	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 1) * size.y;
+	e->getComponent<CTransform>().has = true;
+	e->addComponent<CDraggable>();
+
+	e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Tile));
+	e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
+		e->getComponent<CTransform>().pos.x,
+		e->getComponent<CTransform>().pos.y
+	));
+	e->getComponent<CAnimation>().animation.setRepeat(true);
+}
+
+void EditorScene::addBox() {
+	auto m_WindowSize = m_GameEngine->getWindow().getSize();
+	Vec2 posn(1, 1);
+	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::QuestionBox);
+	Vec2 size(texture.getSize().x, texture.getSize().y);
+
+	std::shared_ptr<Entity> e = m_EntityManager.addEntity(Entities::QuestionBox);
+	e->addComponent<CTransform>();
+	e->getComponent<CTransform>().pos.x = posn.x * size.x;
+	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 1) * size.y;
+	e->getComponent<CTransform>().has = true;
+	e->addComponent<CDraggable>();
+
+	e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::QuestionBox));
+	e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
+		e->getComponent<CTransform>().pos.x,
+		e->getComponent<CTransform>().pos.y
+	));
+	e->getComponent<CAnimation>().animation.setRepeat(true);
+
 }
 
 void EditorScene::update(float dt){
 	ImGui::SFML::Update(m_GameEngine->getWindow(), sf::seconds(dt));
 	m_EntityManager.update();
 
+	sAnimation();
 	sDraggable();
+}
+
+
+void EditorScene::sAnimation() {
+	for (auto& e : m_EntityManager.getEntities()) {
+		if (e->hasComponent<CAnimation>()) {
+			e->getComponent<CAnimation>().animation.update();
+		}
+	}
 }
 
 void EditorScene::sDoAction(const Action& action){

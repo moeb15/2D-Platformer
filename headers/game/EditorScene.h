@@ -19,6 +19,7 @@ public:
 	virtual void sRender();
 	virtual void sDoAction(const Action& action);
 	void sDraggable();
+	void sAnimation();
 	void saveScene();
 	void sceneEditor();
 
@@ -26,5 +27,7 @@ private:
 	Vec2 windowToWorld(const Vec2& window) const;
 	void loadAssets();
 	void addGround();
+	void addBrick();
+	void addBox();
 	void init();
 };
