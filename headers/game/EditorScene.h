@@ -11,6 +11,7 @@ private:
 	Vec2 m_MousePos;
 	sf::CircleShape m_MouseShape;
 	sf::View m_EditorView;
+	std::string m_LevelName;
 
 public:
 	EditorScene(GameEngine*);

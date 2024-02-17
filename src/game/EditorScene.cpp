@@ -1,8 +1,8 @@
 #include "game/EditorScene.h"
 #include "engine/GameEngine.h"
-#include "engine/Physics.h";
+#include "engine/Physics.h"
 #include <iostream>
-
+#include <fstream>
 
 EditorScene::EditorScene(GameEngine* engine) :
 	Scene(engine),
@@ -33,7 +33,33 @@ void EditorScene::loadAssets() {
 	m_GameEngine->getAssets().addAnimation(Animations::QuestionBox);
 }
 
-void EditorScene::saveScene() {}
+void EditorScene::saveScene() {
+	auto windowSize = m_GameEngine->getWindow().getSize();
+	std::ofstream newLvl("levels/custom/" + m_LevelName + ".txt");
+	std::string line;
+	for (auto& e : m_EntityManager.getEntities()) {
+		Vec2& pos = e->getComponent<CTransform>().pos;
+		switch (e->tag()) {
+		case Entities::Floor:
+			line = "Tile Ground " + std::to_string((int)pos.x / 64)
+				+ " " + std::to_string((int)windowSize.y / 64 - ((int)pos.y / 64 + 1)) + "\n";
+			newLvl << line;
+			break;
+
+		case Entities::Tile:
+			line = "Tile Brick " + std::to_string((int)pos.x / 64)
+				+ " " + std::to_string((int)windowSize.y / 64 - ((int)pos.y / 64 + 1)) + "\n";
+			newLvl << line;
+			break;
+
+		case Entities::QuestionBox:
+			line = "Tile QuestionBox " + std::to_string((int)pos.x / 64)
+				+ " " + std::to_string((int)windowSize.y / 64 - ((int)pos.y / 64 + 1)) + "\n";
+			newLvl << line;
+			break;
+		}
+	}
+}
 
 void EditorScene::sceneEditor() {
 	ImGui::Begin("Level Editor");
@@ -52,12 +78,18 @@ void EditorScene::sceneEditor() {
 		addBox();
 	}
 
+	ImGui::Text("Level Title");
+	ImGui::InputText("Title:", &m_LevelName);
+	if (ImGui::Button("Save")) {
+		saveScene();
+	}
 	ImGui::End();
 }
 
 void EditorScene::addGround() {
+	auto viewCenter = m_EditorView.getCenter();
 	auto m_WindowSize = m_GameEngine->getWindow().getSize();
-	Vec2 posn(1,1);
+	Vec2 posn(viewCenter.x / 64, viewCenter.y / 64);
 	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Ground);
 	Vec2 size(texture.getSize().x, texture.getSize().y);
 
@@ -77,8 +109,9 @@ void EditorScene::addGround() {
 }
 
 void EditorScene::addBrick() {
+	auto viewCenter = m_EditorView.getCenter();
 	auto m_WindowSize = m_GameEngine->getWindow().getSize();
-	Vec2 posn(1, 1);
+	Vec2 posn(viewCenter.x / 64, viewCenter.y / 64);
 	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Brick);
 	Vec2 size(texture.getSize().x, texture.getSize().y);
 
@@ -98,8 +131,9 @@ void EditorScene::addBrick() {
 }
 
 void EditorScene::addBox() {
+	auto viewCenter = m_EditorView.getCenter();
 	auto m_WindowSize = m_GameEngine->getWindow().getSize();
-	Vec2 posn(1, 1);
+	Vec2 posn(viewCenter.x / 64, viewCenter.y / 64);
 	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::QuestionBox);
 	Vec2 size(texture.getSize().x, texture.getSize().y);
 
