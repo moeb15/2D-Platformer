@@ -15,6 +15,7 @@ private:
 	bool m_DrawBox = false;
 	Vec2 m_mPos;
 	sf::CircleShape m_mShape;
+	sf::Sprite m_Background;
 
 public:
 	GameScene(GameEngine* gameEngine, const std::string& levelPath);

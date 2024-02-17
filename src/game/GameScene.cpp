@@ -37,16 +37,20 @@ void GameScene::init(const std::string& levelPath) {
 
 void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addTexture(Textures::Brick, "graphics/brickTexture.png");
-	m_GameEngine->getAssets().addTexture(Textures::Ground, "graphics/groundTexture.png");
+	m_GameEngine->getAssets().addTexture(Textures::Ground, "graphics/dungeonGround.png");
 	m_GameEngine->getAssets().addTexture(Textures::QuestionBox, "graphics/questionBoxAnimation.png");
 	m_GameEngine->getAssets().addTexture(Textures::Explosion, "graphics/shittyExplosion.png");
+	m_GameEngine->getAssets().addTexture(Textures::Background, "graphics/dungeonBackground-version2.png");
+	m_GameEngine->getAssets().getTexture(Textures::Background).setRepeated(true);
 
-	m_GameEngine->getAssets().addTexture(Textures::Idle, "graphics/megamanIdle.png");
-	m_GameEngine->getAssets().addTexture(Textures::Run, "graphics/megamanRun.png");
+	m_GameEngine->getAssets().addTexture(Textures::Idle, "graphics/megamanGohan.png");
+	m_GameEngine->getAssets().addTexture(Textures::Run, "graphics/megamanGohanRun.png");
+	m_GameEngine->getAssets().addTexture(Textures::RunLeft, "graphics/megamanGohanRunLeft.png");
 	m_GameEngine->getAssets().addTexture(Textures::Jump, "graphics/megamanJump.png");
 
 	m_GameEngine->getAssets().addAnimation(Animations::Idle);
 	m_GameEngine->getAssets().addAnimation(Animations::Run);
+	m_GameEngine->getAssets().addAnimation(Animations::RunLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Jump);
 	m_GameEngine->getAssets().addAnimation(Animations::Tile);
 	m_GameEngine->getAssets().addAnimation(Animations::Ground);
@@ -56,6 +60,9 @@ void GameScene::loadAssets() {
 
 
 void GameScene::loadLevel(const std::string& levelPath){
+	m_Background.setTexture(m_GameEngine->getAssets().getTexture(Textures::Background));
+	m_Background.setTextureRect(sf::IntRect(0, 0, 12800, 720));
+
 	std::fstream file;
 	file.open(levelPath);
 	std::stringstream contents;
@@ -210,10 +217,9 @@ void GameScene::sAnimation() {
 			}
 		}
 		else if (m_Player->getComponent<CInput>().left) {
-			if (m_Player->getComponent<CAnimation>().animation.getType() != Animations::Run) {
-				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Run));
+			if (m_Player->getComponent<CAnimation>().animation.getType() != Animations::RunLeft) {
+				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::RunLeft));
 				m_Player->getComponent<CAnimation>().animation.setRepeat(true);
-				m_Player->getComponent<CAnimation>().animation.getSprite().scale(-1, 1);
 			}
 		}
 		else if (m_Player->getComponent<CInput>().up) {
@@ -242,10 +248,7 @@ void GameScene::sAnimation() {
 void GameScene::sDoAction(const Action& action){
 	if (action.getType() == Actions::Start) {
 		if (action.getName() == Actions::Quit) {
-			std::shared_ptr<MenuScene> menuScene(
-				new MenuScene(m_GameEngine));
-
-			m_GameEngine->changeScene(Scenes::Main, menuScene);
+			m_GameEngine->changeScene(Scenes::Main, nullptr);
 		}
 		if (action.getName() == Actions::Right) {
 			m_Player->getComponent<CInput>().right = true;
@@ -426,6 +429,7 @@ void GameScene::sRender(){
 	window.setView(m_GameView);
 
 	window.clear(sf::Color(135, 206, 255));
+	window.draw(m_Background);
 	for (auto& e : m_EntityManager.getEntities()) {
 		auto& transform = e->getComponent<CTransform>();
 		if (!m_DrawBox) {
