@@ -243,6 +243,7 @@ void GameScene::update(float dt){
 	//std::cout << m_EntityManager.getEntities().size() << std::endl;
 	
 	if (!m_Paused) {
+		sLifespan(dt);
 		sMovement(dt);
 		sDraggable();
 		sCollision();
@@ -526,6 +527,19 @@ void GameScene::sCollision(){
 	}
 }
 
+void GameScene::sLifespan(float dt) {
+	for (auto& e : m_EntityManager.getEntities()) {
+		if (e->hasComponent<CLifespan>()) {
+			if(e->getComponent<CLifespan>().total <= 0.0f){
+				e->destroy();
+			}
+			else {
+				e->getComponent<CLifespan>().total -= dt;
+			}
+		}
+	}
+}
+
 void GameScene::sRender(){
 	sf::RenderWindow& window = m_GameEngine->getWindow();
 	sf::Vector2u windowSize = window.getSize();
@@ -603,7 +617,7 @@ void GameScene::spawnBullet() {
 	e->getComponent<CAnimation>().animation.setRepeat(true);
 
 	e->addComponent<CLifespan>();
-	e->getComponent<CLifespan>().total = 5.f;
+	e->getComponent<CLifespan>().total = 50.f;
 	e->addComponent<CBoundingBox>();
 	e->getComponent<CBoundingBox>().size.x = size.x;
 	e->getComponent<CBoundingBox>().size.y = size.y;
