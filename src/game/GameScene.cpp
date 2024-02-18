@@ -26,7 +26,7 @@ void GameScene::init(const std::string& levelPath) {
 	registerAction(sf::Keyboard::W, Actions::Jump);
 	registerAction(sf::Keyboard::A, Actions::Left);
 	registerAction(sf::Keyboard::D, Actions::Right);
-	registerAction(sf::Keyboard::K, Actions::Shoot);
+	registerAction(sf::Keyboard::J, Actions::Shoot);
 	registerAction(sf::Keyboard::Escape, Actions::Quit);
 	registerAction(sf::Keyboard::B, Actions::ToggleBox);
 	registerAction(sf::Keyboard::P, Actions::Pause);
@@ -50,12 +50,16 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addTexture(Textures::Run, "graphics/megamanGohanRun.png");
 	m_GameEngine->getAssets().addTexture(Textures::RunLeft, "graphics/megamanGohanRunLeft.png");
 	m_GameEngine->getAssets().addTexture(Textures::Jump, "graphics/megamanJump.png");
+	m_GameEngine->getAssets().addTexture(Textures::Shoot, "graphics/megamanGohanAttack.png");
+	m_GameEngine->getAssets().addTexture(Textures::Blast, "graphics/kiBlast-Sheet.png");
 
 	m_GameEngine->getAssets().addAnimation(Animations::Idle);
 	m_GameEngine->getAssets().addAnimation(Animations::IdleLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Run);
 	m_GameEngine->getAssets().addAnimation(Animations::RunLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Jump);
+	m_GameEngine->getAssets().addAnimation(Animations::Shoot);
+	m_GameEngine->getAssets().addAnimation(Animations::Blast);
 	m_GameEngine->getAssets().addAnimation(Animations::Tile);
 	m_GameEngine->getAssets().addAnimation(Animations::Ground);
 	m_GameEngine->getAssets().addAnimation(Animations::QuestionBox);
@@ -266,9 +270,13 @@ void GameScene::sAnimation() {
 			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Jump));
 			m_Player->getComponent<CAnimation>().animation.setRepeat(true);
 		}
+		else if (m_Player->getComponent<CInput>().shoot) {
+			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Shoot));
+		}
 		else {
 			if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run ||
-				m_Player->getComponent<CAnimation>().animation.getType() == Animations::Jump) {
+				m_Player->getComponent<CAnimation>().animation.getType() == Animations::Jump ||
+				m_Player->getComponent<CAnimation>().animation.getType() == Animations::Shoot) {
 				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Idle));
 			}
 			else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft) {
@@ -308,6 +316,10 @@ void GameScene::sDoAction(const Action& action){
 				m_Player->getComponent<CInput>().up = true;
 			}
 		}
+		if (action.getName() == Actions::Shoot) {
+			m_Player->getComponent<CInput>().shoot = true;
+			spawnBullet();
+		}
 		if (action.getName() == Actions::Pause) {
 			m_Paused = !m_Paused;
 		}
@@ -336,6 +348,9 @@ void GameScene::sDoAction(const Action& action){
 		}
 		if (action.getName() == Actions::Jump) {
 			m_Player->getComponent<CInput>().up = false;
+		}
+		if (action.getName() == Actions::Shoot) {
+			m_Player->getComponent<CInput>().shoot = false;
 		}
 	}
 }
@@ -569,5 +584,28 @@ Vec2 GameScene::windowToWorld(const Vec2& window) const {
 }
 
 void GameScene::spawnBullet() {
+	sf::Vector2u m_WindowSize = m_GameEngine->getWindow().getSize();
+	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Blast);
+	Vec2 size(texture.getSize().x, texture.getSize().y);
+
+	auto e = m_EntityManager.addEntity(Entities::Bullet);
+	e->addComponent<CTransform>();
+	e->getComponent<CTransform>().pos.x = m_Player->getComponent<CTransform>().pos.x + 64;
+	e->getComponent<CTransform>().pos.y = m_Player->getComponent<CTransform>().pos.y + 24;
+	e->getComponent<CTransform>().velocity.x = 600.f;
+
+	
+	e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Blast));
+	e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
+		e->getComponent<CTransform>().pos.x,
+		e->getComponent<CTransform>().pos.y
+	));
+	e->getComponent<CAnimation>().animation.setRepeat(true);
+
+	e->addComponent<CLifespan>();
+	e->getComponent<CLifespan>().total = 5.f;
+	e->addComponent<CBoundingBox>();
+	e->getComponent<CBoundingBox>().size.x = size.x;
+	e->getComponent<CBoundingBox>().size.y = size.y;
 }
 
