@@ -29,6 +29,7 @@ void GameScene::init(const std::string& levelPath) {
 	registerAction(sf::Keyboard::K, Actions::Shoot);
 	registerAction(sf::Keyboard::Escape, Actions::Quit);
 	registerAction(sf::Keyboard::B, Actions::ToggleBox);
+	registerAction(sf::Keyboard::P, Actions::Pause);
 
 	loadAssets();
 	spawnPlayer();
@@ -45,11 +46,13 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().getTexture(Textures::Background).setRepeated(true);
 
 	m_GameEngine->getAssets().addTexture(Textures::Idle, "graphics/megamanGohan.png");
+	m_GameEngine->getAssets().addTexture(Textures::IdleLeft, "graphics/megamanGohanLeft.png");
 	m_GameEngine->getAssets().addTexture(Textures::Run, "graphics/megamanGohanRun.png");
 	m_GameEngine->getAssets().addTexture(Textures::RunLeft, "graphics/megamanGohanRunLeft.png");
 	m_GameEngine->getAssets().addTexture(Textures::Jump, "graphics/megamanJump.png");
 
 	m_GameEngine->getAssets().addAnimation(Animations::Idle);
+	m_GameEngine->getAssets().addAnimation(Animations::IdleLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Run);
 	m_GameEngine->getAssets().addAnimation(Animations::RunLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Jump);
@@ -104,7 +107,7 @@ void GameScene::spawnPlayer() {
 	m_Player->getComponent<CTransform>().pos.y = m_WindowSize.y - (pos.y + 1) * size.y;
 
 	m_Player->addComponent<CBoundingBox>();
-	m_Player->getComponent<CBoundingBox>().size = Vec2(64,96);
+	m_Player->getComponent<CBoundingBox>().size = Vec2(64,80);
 	m_Player->getComponent<CBoundingBox>().has = true;
 
 	m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Idle));
@@ -117,6 +120,7 @@ void GameScene::spawnPlayer() {
 	m_Player->addComponent<CInput>();
 	m_Player->addComponent<CGravity>();
 	m_Player->addComponent<CState>();
+	m_Player->getComponent<CState>().state = States::Air;
 }
 
 void GameScene::addEnemy(std::vector<std::string>& fileEntities) {
@@ -125,11 +129,15 @@ void GameScene::addEnemy(std::vector<std::string>& fileEntities) {
 	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Enemy);
 	Vec2 size(texture.getSize().x, texture.getSize().y);
 
-	auto e = m_EntityManager.addEntity(Entities::Floor);
+	auto e = m_EntityManager.addEntity(Entities::Enemy);
 	e->addComponent<CTransform>();
 	e->getComponent<CTransform>().pos.x = posn.x * 64;
-	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 1) * 64;
-	e->getComponent<CTransform>().has = true;
+	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 3) * 64;
+	e->getComponent<CTransform>().velocity.x = 50.f;
+
+	e->addComponent<CGravity>();
+	e->addComponent<CState>();
+	e->getComponent<CState>().state = States::Air;
 
 	e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Enemy));
 	e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
@@ -230,10 +238,12 @@ void GameScene::update(float dt){
 	m_EntityManager.update();
 	//std::cout << m_EntityManager.getEntities().size() << std::endl;
 	
-	sMovement(dt);
-	sDraggable();
-	sCollision();
-	sAnimation();
+	if (!m_Paused) {
+		sMovement(dt);
+		sDraggable();
+		sCollision();
+		sAnimation();
+	}
 	sRender();
 }
 
@@ -257,7 +267,13 @@ void GameScene::sAnimation() {
 			m_Player->getComponent<CAnimation>().animation.setRepeat(true);
 		}
 		else {
-			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Idle));
+			if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run ||
+				m_Player->getComponent<CAnimation>().animation.getType() == Animations::Jump) {
+				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Idle));
+			}
+			else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft) {
+				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::IdleLeft));
+			}
 			m_Player->getComponent<CAnimation>().animation.setRepeat(true);
 		}
 	}
@@ -291,6 +307,9 @@ void GameScene::sDoAction(const Action& action){
 				m_Player->getComponent<CState>().state = States::Air;
 				m_Player->getComponent<CInput>().up = true;
 			}
+		}
+		if (action.getName() == Actions::Pause) {
+			m_Paused = !m_Paused;
 		}
 		if (action.getName() == Actions::ToggleBox) {
 			m_DrawBox = !m_DrawBox;
@@ -383,6 +402,38 @@ void GameScene::sDraggable() {
 }
 
 void GameScene::sCollision(){
+	for (auto& e : m_EntityManager.getEntities(Entities::Enemy)) {
+		if (e->getComponent<CTransform>().pos.x < 64) {
+			e->getComponent<CTransform>().velocity.x =
+				-e->getComponent<CTransform>().velocity.x;
+		}
+		for (auto& f : m_EntityManager.getEntities(Entities::Floor)) {
+			if (f->tag() == Entities::Floor) {
+				Vec2 overlap = Physics::GetOverlap(e, f);
+				Vec2 prevOverlap = Physics::GetPreviousOverlap(e, f);
+				if (overlap.x > 0.0f && overlap.y > 0.0f) {
+					if (prevOverlap.y > 0 && e->getComponent<CTransform>().prevPos.x >
+						f->getComponent<CTransform>().prevPos.x) {
+						e->getComponent<CTransform>().pos.x += overlap.x;
+						e->getComponent<CTransform>().velocity.x =
+							-e->getComponent<CTransform>().velocity.x;
+					}
+					if (prevOverlap.y > 0 && e->getComponent<CTransform>().prevPos.x <
+						f->getComponent<CTransform>().prevPos.x) {
+						e->getComponent<CTransform>().pos.x -= overlap.x;
+						e->getComponent<CTransform>().velocity.x =
+							-e->getComponent<CTransform>().velocity.x;
+					}
+					if (prevOverlap.x > 0) {
+						e->getComponent<CTransform>().pos.y -= overlap.y;
+						e->getComponent<CTransform>().velocity.y = 0;
+						e->getComponent<CState>().state = States::Ground;
+					}
+				}
+			}
+		}
+	}
+
 	for (auto& e : m_EntityManager.getEntities()) {
 		if (e->tag() == Entities::Player) {
 			continue;
@@ -390,20 +441,32 @@ void GameScene::sCollision(){
 		if (e->tag() == Entities::Floor) {
 			Vec2 overlap = Physics::GetOverlap(m_Player, e);
 			Vec2 prevOverlap = Physics::GetPreviousOverlap(m_Player, e);
-			if (overlap.y > 0.0f && overlap.x > 0) {
-				if (prevOverlap.x > 0) {
+			if (overlap.y > 0.0f && overlap.x > 0.0f) {
+				if (prevOverlap.x > 0 && m_Player->getComponent<CTransform>().prevPos.y <
+					e->getComponent<CTransform>().prevPos.y) {
 					m_Player->getComponent<CTransform>().pos.y -= overlap.y;
 					m_Player->getComponent<CTransform>().velocity.y = 0;
 					m_Player->getComponent<CState>().state = States::Ground;
 				}
-				if (prevOverlap.y > 0) {
+				if (prevOverlap.x > 0 && m_Player->getComponent<CTransform>().prevPos.y >
+					e->getComponent<CTransform>().prevPos.y) {
+					m_Player->getComponent<CTransform>().pos.y += overlap.y;
+					m_Player->getComponent<CTransform>().velocity.y = 0;
+					m_Player->getComponent<CState>().state = States::Air;
+				}
+				if (prevOverlap.y > 0 && m_Player->getComponent<CTransform>().prevPos.x >
+					e->getComponent<CTransform>().prevPos.x) {
+					m_Player->getComponent<CTransform>().pos.x += overlap.x;
+				}
+				if (prevOverlap.y > 0 && m_Player->getComponent<CTransform>().prevPos.x <
+					e->getComponent<CTransform>().prevPos.x) {
 					m_Player->getComponent<CTransform>().pos.x -= overlap.x;
 				}
 			}
-			else if(m_Player->getComponent<CTransform>().pos.y > 
-				m_GameEngine->getWindow().getSize().y - m_Player->getComponent<CBoundingBox>().size.y) {
-				m_Player->getComponent<CState>().state = States::Air;
-			}
+			//else if(m_Player->getComponent<CTransform>().pos.y > 
+			//	m_GameEngine->getWindow().getSize().y - m_Player->getComponent<CBoundingBox>().size.y) {
+			//	m_Player->getComponent<CState>().state = States::Air;
+			//}
 		}
 		if (e->tag() == Entities::Tile) {
 			Vec2 overlap = Physics::GetOverlap(m_Player, e);
