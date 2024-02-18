@@ -34,6 +34,7 @@ namespace Actions {
 		MouseLeft,
 		MouseRight,
 		MouseMoved,
+		Pause,
 	};
 }
 
@@ -49,6 +50,7 @@ namespace Scenes {
 namespace Animations {
 	enum Type {
 		Idle,
+		IdleLeft,
 		Run,
 		RunLeft,
 		Jump,

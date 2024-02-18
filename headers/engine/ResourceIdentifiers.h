@@ -5,6 +5,7 @@
 namespace Textures {
 	enum ID{
 		Idle,
+		IdleLeft,
 		Run,
 		RunLeft,
 		Jump,

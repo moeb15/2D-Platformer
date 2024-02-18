@@ -11,6 +11,9 @@ Textures::ID toTextureID(Animations::Type type) {
 	case Animations::Idle:
 		return Textures::Idle;
 
+	case Animations::IdleLeft:
+		return Textures::IdleLeft;
+
 	case Animations::Run:
 		return Textures::Run;
 

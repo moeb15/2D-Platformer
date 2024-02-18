@@ -8,6 +8,9 @@ std::vector<AnimationData> initializeAnimationData() {
 	data[Animations::Idle].frameCount = 1;
 	data[Animations::Idle].duration = 60;
 
+	data[Animations::IdleLeft].frameCount = 1;
+	data[Animations::IdleLeft].duration = 60;
+
 	data[Animations::Jump].frameCount = 1;
 	data[Animations::Jump].duration = 60;
 
