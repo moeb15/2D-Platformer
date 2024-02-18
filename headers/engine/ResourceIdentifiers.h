@@ -16,6 +16,7 @@ namespace Textures {
 		QuestionBox,
 		Enemy,
 		Background,
+		Blast,
 	};
 }
 

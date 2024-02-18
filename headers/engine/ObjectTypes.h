@@ -55,6 +55,7 @@ namespace Animations {
 		RunLeft,
 		Jump,
 		Shoot,
+		Blast,
 		Tile,
 		Ground,
 		QuestionBox,

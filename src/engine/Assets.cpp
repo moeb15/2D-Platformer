@@ -26,6 +26,9 @@ Textures::ID toTextureID(Animations::Type type) {
 	case Animations::Shoot:
 		return Textures::Shoot;
 
+	case Animations::Blast:
+		return Textures::Blast;
+
 	case Animations::Tile:
 		return Textures::Brick;
 
