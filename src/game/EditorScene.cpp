@@ -21,16 +21,22 @@ void EditorScene::init() {
 	registerAction(sf::Keyboard::A, Actions::Left);
 
 	loadAssets();
+	m_Background.setTexture(m_GameEngine->getAssets().getTexture(Textures::Background));
+	m_Background.setTextureRect(sf::IntRect(0, 0, 128000, 720));
 }
 
 void EditorScene::loadAssets() {
 	m_GameEngine->getAssets().addTexture(Textures::Brick, "graphics/brickTexture.png");
-	m_GameEngine->getAssets().addTexture(Textures::Ground, "graphics/groundTexture.png");
+	m_GameEngine->getAssets().addTexture(Textures::Ground, "graphics/dungeonGround.png");
 	m_GameEngine->getAssets().addTexture(Textures::QuestionBox, "graphics/questionBoxAnimation.png");
+	m_GameEngine->getAssets().addTexture(Textures::Enemy, "graphics/dungeonEnemy.png");
+	m_GameEngine->getAssets().addTexture(Textures::Background, "graphics/dungeonBackground-version2.png");
+	m_GameEngine->getAssets().getTexture(Textures::Background).setRepeated(true);
 
 	m_GameEngine->getAssets().addAnimation(Animations::Tile);
 	m_GameEngine->getAssets().addAnimation(Animations::Ground);
 	m_GameEngine->getAssets().addAnimation(Animations::QuestionBox);
+	m_GameEngine->getAssets().addAnimation(Animations::Enemy);
 }
 
 void EditorScene::saveScene() {
@@ -57,6 +63,12 @@ void EditorScene::saveScene() {
 				+ " " + std::to_string((int)windowSize.y / 64 - ((int)pos.y / 64 + 1)) + "\n";
 			newLvl << line;
 			break;
+
+		case Entities::Enemy:
+			line = "AI Enemy " + std::to_string((int)pos.x / 128)
+				+ " " + std::to_string((int)windowSize.y / 128 - ((int)pos.y / 128 + 1)) + "\n";
+			newLvl << line;
+			break;
 		}
 	}
 }
@@ -77,9 +89,12 @@ void EditorScene::sceneEditor() {
 	if (ImGui::Button("Question Box Tile")) {
 		addBox();
 	}
+	if (ImGui::Button("Enemy Entity")) {
+		addEnemy();
+	}
 
 	ImGui::Text("Level Title");
-	ImGui::InputText("Title:", &m_LevelName);
+	ImGui::InputText("Title", &m_LevelName);
 	if (ImGui::Button("Save")) {
 		saveScene();
 	}
@@ -151,6 +166,28 @@ void EditorScene::addBox() {
 	));
 	e->getComponent<CAnimation>().animation.setRepeat(true);
 
+}
+
+void EditorScene::addEnemy() {
+	auto viewCenter = m_EditorView.getCenter();
+	auto m_WindowSize = m_GameEngine->getWindow().getSize();
+	Vec2 posn(viewCenter.x / 64, viewCenter.y / 64);
+	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Enemy);
+	Vec2 size(texture.getSize().x, texture.getSize().y);
+
+	std::shared_ptr<Entity> e = m_EntityManager.addEntity(Entities::Enemy);
+	e->addComponent<CTransform>();
+	e->getComponent<CTransform>().pos.x = posn.x * 64;
+	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 1) * 64;
+	e->getComponent<CTransform>().has = true;
+	e->addComponent<CDraggable>();
+
+	e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Enemy));
+	e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
+		e->getComponent<CTransform>().pos.x,
+		e->getComponent<CTransform>().pos.y
+	));
+	e->getComponent<CAnimation>().animation.setRepeat(true);
 }
 
 void EditorScene::update(float dt){
@@ -233,6 +270,7 @@ void EditorScene::sRender(){
 	ImGui::SFML::SetCurrentWindow(window);
 	sceneEditor();
 	window.clear(sf::Color(135, 206, 255));
+	window.draw(m_Background);
 
 	for (auto& e : m_EntityManager.getEntities()) {
 		if (e->hasComponent<CTransform>() &&

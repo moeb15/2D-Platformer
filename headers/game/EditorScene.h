@@ -12,6 +12,7 @@ private:
 	sf::CircleShape m_MouseShape;
 	sf::View m_EditorView;
 	std::string m_LevelName;
+	sf::Sprite m_Background;
 
 public:
 	EditorScene(GameEngine*);
@@ -30,5 +31,6 @@ private:
 	void addGround();
 	void addBrick();
 	void addBox();
+	void addEnemy();
 	void init();
 };
