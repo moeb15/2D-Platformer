@@ -31,7 +31,6 @@ public:
 	void sCollision();
 	virtual void sDoAction(const Action& action);
 	virtual void sRender();
-	//void sEnemySpawner();
 	void spawnBullet();
 
 private:
@@ -39,6 +38,7 @@ private:
 	void loadAssets();
 	void loadLevel(const std::string& levelPath);
 	void addTile(std::vector<std::string>& v, const std::string& type);
+	void addEnemy(std::vector<std::string>& v);
 	void spawnPlayer();
 	
 

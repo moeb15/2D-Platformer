@@ -40,6 +40,7 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addTexture(Textures::Ground, "graphics/dungeonGround.png");
 	m_GameEngine->getAssets().addTexture(Textures::QuestionBox, "graphics/questionBoxAnimation.png");
 	m_GameEngine->getAssets().addTexture(Textures::Explosion, "graphics/shittyExplosion.png");
+	m_GameEngine->getAssets().addTexture(Textures::Enemy, "graphics/dungeonEnemy.png");
 	m_GameEngine->getAssets().addTexture(Textures::Background, "graphics/dungeonBackground-version2.png");
 	m_GameEngine->getAssets().getTexture(Textures::Background).setRepeated(true);
 
@@ -56,12 +57,13 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addAnimation(Animations::Ground);
 	m_GameEngine->getAssets().addAnimation(Animations::QuestionBox);
 	m_GameEngine->getAssets().addAnimation(Animations::Explosion);
+	m_GameEngine->getAssets().addAnimation(Animations::Enemy);
 }
 
 
 void GameScene::loadLevel(const std::string& levelPath){
 	m_Background.setTexture(m_GameEngine->getAssets().getTexture(Textures::Background));
-	m_Background.setTextureRect(sf::IntRect(0, 0, 12800, 720));
+	m_Background.setTextureRect(sf::IntRect(0, 0, 128000, 720));
 
 	std::fstream file;
 	file.open(levelPath);
@@ -82,6 +84,9 @@ void GameScene::loadLevel(const std::string& levelPath){
 		if (fileEntities[0] == "Tile") {
 			addTile(fileEntities, fileEntities[1]);
 		}
+		else if (fileEntities[0] == "AI") {
+			addEnemy(fileEntities);
+		}
 
 		fileEntities.clear();
  	}
@@ -99,7 +104,7 @@ void GameScene::spawnPlayer() {
 	m_Player->getComponent<CTransform>().pos.y = m_WindowSize.y - (pos.y + 1) * size.y;
 
 	m_Player->addComponent<CBoundingBox>();
-	m_Player->getComponent<CBoundingBox>().size = size;
+	m_Player->getComponent<CBoundingBox>().size = Vec2(64,96);
 	m_Player->getComponent<CBoundingBox>().has = true;
 
 	m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Idle));
@@ -112,6 +117,31 @@ void GameScene::spawnPlayer() {
 	m_Player->addComponent<CInput>();
 	m_Player->addComponent<CGravity>();
 	m_Player->addComponent<CState>();
+}
+
+void GameScene::addEnemy(std::vector<std::string>& fileEntities) {
+	sf::Vector2u m_WindowSize = m_GameEngine->getWindow().getSize();
+	Vec2 posn(std::stoi(fileEntities[2]), std::stoi(fileEntities[3]));
+	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Enemy);
+	Vec2 size(texture.getSize().x, texture.getSize().y);
+
+	auto e = m_EntityManager.addEntity(Entities::Floor);
+	e->addComponent<CTransform>();
+	e->getComponent<CTransform>().pos.x = posn.x * 64;
+	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 1) * 64;
+	e->getComponent<CTransform>().has = true;
+
+	e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Enemy));
+	e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
+		e->getComponent<CTransform>().pos.x,
+		e->getComponent<CTransform>().pos.y
+	));
+	e->getComponent<CAnimation>().animation.setRepeat(true);
+
+	e->addComponent<CBoundingBox>();
+	e->getComponent<CBoundingBox>().has = true;
+	e->getComponent<CBoundingBox>().size.x = size.x;
+	e->getComponent<CBoundingBox>().size.y = size.y;
 }
 
 void GameScene::addTile(std::vector<std::string>& fileEntities, const std::string& type) {
@@ -429,7 +459,10 @@ void GameScene::sRender(){
 	window.setView(m_GameView);
 
 	window.clear(sf::Color(135, 206, 255));
-	window.draw(m_Background);
+	if (!m_DrawBox) {
+		window.draw(m_Background);
+	}
+
 	for (auto& e : m_EntityManager.getEntities()) {
 		auto& transform = e->getComponent<CTransform>();
 		if (!m_DrawBox) {
@@ -457,8 +490,8 @@ void GameScene::sRender(){
 		}
 	}
 
-	m_mShape.setPosition(sf::Vector2f(m_mPos.x, m_mPos.y));
-	window.draw(m_mShape);
+//	m_mShape.setPosition(sf::Vector2f(m_mPos.x, m_mPos.y));
+//	window.draw(m_mShape);
 
 	window.display();
 }
