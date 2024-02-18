@@ -13,6 +13,7 @@ namespace Textures {
 		Ground,
 		Explosion,
 		QuestionBox,
+		Enemy,
 		Background,
 	};
 }

@@ -57,6 +57,7 @@ namespace Animations {
 		Ground,
 		QuestionBox,
 		Explosion,
+		Enemy,
 		AnimationCount
 	};
 }

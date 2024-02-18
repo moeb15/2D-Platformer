@@ -34,6 +34,9 @@ Textures::ID toTextureID(Animations::Type type) {
 
 	case Animations::Explosion:
 		return Textures::Explosion;
+
+	case Animations::Enemy:
+		return Textures::Enemy;
 	}
 }
 
