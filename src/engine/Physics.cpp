@@ -12,8 +12,8 @@ Vec2 Physics::GetOverlap(std::shared_ptr<Entity> e1, std::shared_ptr<Entity> e2)
 		Vec2& pos1 = e1->getComponent<CTransform>().pos;
 		Vec2& pos2 = e2->getComponent<CTransform>().pos;
 
-		float dx = fabsf(pos2.x - pos1.x);
-		float dy = fabsf(pos2.y - pos1.y);
+		float dx = fabsf(pos2.x - pos1.x - size1.x / 2.f + size2.x / 2.f);
+		float dy = fabsf(pos2.y - pos1.y - size1.y / 2.f + size2.y / 2.f);
 
 		return Vec2(
 			(size1.x + size2.x) / 2.f - dx,
@@ -33,8 +33,8 @@ Vec2 Physics::GetPreviousOverlap(std::shared_ptr<Entity> e1, std::shared_ptr<Ent
 		Vec2& pos1 = e1->getComponent<CTransform>().prevPos;
 		Vec2& pos2 = e2->getComponent<CTransform>().prevPos;
 
-		float dx = fabsf(pos2.x - pos1.x);
-		float dy = fabsf(pos2.y - pos1.y);
+		float dx = fabsf(pos2.x - pos1.x - size1.x / 2.f + size2.x / 2.f);
+		float dy = fabsf(pos2.y - pos1.y - size1.y / 2.f + size2.y / 2.f);
 
 		return Vec2(
 			(size1.x + size2.x) / 2.f - dx,
@@ -47,7 +47,6 @@ Vec2 Physics::GetPreviousOverlap(std::shared_ptr<Entity> e1, std::shared_ptr<Ent
 bool Physics::IsInside(Vec2 pos, std::shared_ptr<Entity> e) {
 	auto& transform = e->getComponent<CTransform>();
 	auto& size = e->getComponent<CAnimation>().animation.getSize();
-	//std::cout << size.x << " " << size.y << std::endl;
 
 	float dx = fabsf(transform.pos.x - pos.x + size.x / 2);
 	float dy = fabsf(transform.pos.y - pos.y + size.y / 2);
