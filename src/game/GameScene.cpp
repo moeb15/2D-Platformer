@@ -29,6 +29,7 @@ void GameScene::init(const std::string& levelPath) {
 	registerAction(sf::Keyboard::D, Actions::Right);
 	registerAction(sf::Keyboard::J, Actions::Shoot);
 	registerAction(sf::Keyboard::K, Actions::Dash);
+	registerAction(sf::Keyboard::Space, Actions::Interact);
 	registerAction(sf::Keyboard::Escape, Actions::Quit);
 	registerAction(sf::Keyboard::B, Actions::ToggleBox);
 	registerAction(sf::Keyboard::P, Actions::Pause);
@@ -278,6 +279,18 @@ void GameScene::addTile(std::vector<std::string>& fileEntities, const std::strin
 	}
 }
 
+void GameScene::exitLevel() {
+	for (auto& door : m_EntityManager.getEntities(Entities::Door)) {
+		Vec2 playerPos = m_Player->getComponent<CTransform>().pos;
+		if (Physics::IsInside(playerPos, door)) {
+			std::shared_ptr<LevelSelectScene> lvlSelect(
+				new LevelSelectScene(m_GameEngine, "levels/rooms/levelSelect.txt"));
+			m_GameEngine->changeScene(Scenes::LevelSelect, lvlSelect);
+			break;
+		}
+	}
+}
+
 void GameScene::update(float dt){
 	m_EntityManager.update();
 	//std::cout << m_EntityManager.getEntities().size() << std::endl;
@@ -412,6 +425,9 @@ void GameScene::sDoAction(const Action& action){
 		if (action.getName() == Actions::MouseMoved) {
 			Vec2 mpos = action.getPos();
 			m_mPos = windowToWorld(mpos);
+		}
+		if (action.getName() == Actions::Interact) {
+			exitLevel();
 		}
 	}
 	else if (action.getType() == Actions::Stop) {

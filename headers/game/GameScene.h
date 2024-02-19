@@ -43,6 +43,6 @@ private:
 	void addEnemy(std::vector<std::string>& v);
 	void addDoor(std::vector<std::string>& v);
 	void spawnPlayer();
-	
+	void exitLevel();
 
 };
