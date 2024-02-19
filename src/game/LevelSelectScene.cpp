@@ -77,7 +77,7 @@ void LevelSelectScene::loadLevel(const std::string& levelPath) {
 
 void LevelSelectScene::spawnPlayer() {
 	sf::Vector2u m_WindowSize = m_GameEngine->getWindow().getSize();
-	Vec2 pos(1, 1);
+	Vec2 pos(0, 0);
 	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Idle);
 	Vec2 size(texture.getSize().x, texture.getSize().y);
 
