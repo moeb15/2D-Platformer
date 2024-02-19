@@ -49,17 +49,23 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addTexture(Textures::IdleLeft, "graphics/megamanGohanLeft.png");
 	m_GameEngine->getAssets().addTexture(Textures::Run, "graphics/megamanGohanRun.png");
 	m_GameEngine->getAssets().addTexture(Textures::RunLeft, "graphics/megamanGohanRunLeft.png");
-	m_GameEngine->getAssets().addTexture(Textures::Jump, "graphics/megamanJump.png");
+	m_GameEngine->getAssets().addTexture(Textures::Jump, "graphics/megamanGohanJump.png");
+	m_GameEngine->getAssets().addTexture(Textures::JumpLeft, "graphics/megamanGohanJumpLeft.png");
 	m_GameEngine->getAssets().addTexture(Textures::Shoot, "graphics/megamanGohanAttack.png");
+	m_GameEngine->getAssets().addTexture(Textures::ShootLeft, "graphics/megamanGohanAttackLeft.png");
 	m_GameEngine->getAssets().addTexture(Textures::Blast, "graphics/kiBlast-Sheet.png");
+	m_GameEngine->getAssets().addTexture(Textures::BlastLeft, "graphics/kiBlast-SheetLeft.png");
 
 	m_GameEngine->getAssets().addAnimation(Animations::Idle);
 	m_GameEngine->getAssets().addAnimation(Animations::IdleLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Run);
 	m_GameEngine->getAssets().addAnimation(Animations::RunLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Jump);
+	m_GameEngine->getAssets().addAnimation(Animations::JumpLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Shoot);
+	m_GameEngine->getAssets().addAnimation(Animations::ShootLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Blast);
+	m_GameEngine->getAssets().addAnimation(Animations::BlastLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Tile);
 	m_GameEngine->getAssets().addAnimation(Animations::Ground);
 	m_GameEngine->getAssets().addAnimation(Animations::QuestionBox);
@@ -268,11 +274,27 @@ void GameScene::sAnimation() {
 			}
 		}
 		else if (m_Player->getComponent<CInput>().up) {
-			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Jump));
-			m_Player->getComponent<CAnimation>().animation.setRepeat(true);
+			if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run ||
+				m_Player->getComponent<CAnimation>().animation.getType() == Animations::Idle) {
+				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Jump));
+			}
+			else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
+				m_Player->getComponent<CAnimation>().animation.getType() == Animations::IdleLeft) {
+				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::JumpLeft));
+			}
 		}
 		else if (m_Player->getComponent<CInput>().shoot) {
-			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Shoot));
+			if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run ||
+				m_Player->getComponent<CAnimation>().animation.getType() == Animations::Idle ||
+				m_Player->getComponent<CAnimation>().animation.getType() == Animations::Jump) {
+				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Shoot));
+			}
+			else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
+				m_Player->getComponent<CAnimation>().animation.getType() == Animations::IdleLeft ||
+				m_Player->getComponent<CAnimation>().animation.getType() == Animations::JumpLeft ) {
+				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::ShootLeft));
+			}
+			m_Player->getComponent<CAnimation>().animation.setRepeat(true);
 		}
 		else {
 			if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run ||
@@ -280,14 +302,23 @@ void GameScene::sAnimation() {
 				m_Player->getComponent<CAnimation>().animation.getType() == Animations::Shoot) {
 				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Idle));
 			}
-			else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft) {
+			else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
+				m_Player->getComponent<CAnimation>().animation.getType() == Animations::JumpLeft ||
+				m_Player->getComponent<CAnimation>().animation.getType() == Animations::ShootLeft) {
 				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::IdleLeft));
 			}
 			m_Player->getComponent<CAnimation>().animation.setRepeat(true);
 		}
 	}
 	if (m_Player->getComponent<CState>().state == States::Air) {
-		m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Jump));
+		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run ||
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Idle) {
+			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Jump));
+		}
+		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::IdleLeft) {
+			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::JumpLeft));
+		}
 	}
 
 	for (auto& e : m_EntityManager.getEntities()) {
@@ -317,9 +348,13 @@ void GameScene::sDoAction(const Action& action){
 				m_Player->getComponent<CInput>().up = true;
 			}
 		}
-		if (action.getName() == Actions::Shoot) {
+		if (action.getName() == Actions::Shoot 
+			&& m_EntityManager.getEntities(Entities::Bullet).size() <= 3) {
 			m_Player->getComponent<CInput>().shoot = true;
 			spawnBullet();
+		}
+		else {
+			m_Player->getComponent<CInput>().shoot = false;
 		}
 		if (action.getName() == Actions::Pause) {
 			m_Paused = !m_Paused;
@@ -423,6 +458,7 @@ void GameScene::sCollision(){
 			e->getComponent<CTransform>().velocity.x =
 				-e->getComponent<CTransform>().velocity.x;
 		}
+		// collisions with floor entities
 		for (auto& f : m_EntityManager.getEntities(Entities::Floor)) {
 			if (f->tag() == Entities::Floor) {
 				Vec2 overlap = Physics::GetOverlap(e, f);
@@ -446,6 +482,14 @@ void GameScene::sCollision(){
 						e->getComponent<CState>().state = States::Ground;
 					}
 				}
+			}
+		}
+		// collisions with bullet entities
+		for (auto& b : m_EntityManager.getEntities(Entities::Bullet)) {
+			Vec2 overlap = Physics::GetOverlap(e, b);
+			if (overlap.x > 0.0f && overlap.y > 0.0f) {
+				e->destroy();
+				b->destroy();
 			}
 		}
 	}
@@ -602,14 +646,21 @@ void GameScene::spawnBullet() {
 	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Blast);
 	Vec2 size(texture.getSize().x, texture.getSize().y);
 
+	bool isLeft = m_Player->getComponent<CAnimation>().animation.getType() == Animations::ShootLeft ||
+		m_Player->getComponent<CAnimation>().animation.getType() == Animations::IdleLeft ||
+		m_Player->getComponent<CAnimation>().animation.getType() == Animations::JumpLeft ||
+		m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ;
+
 	auto e = m_EntityManager.addEntity(Entities::Bullet);
 	e->addComponent<CTransform>();
-	e->getComponent<CTransform>().pos.x = m_Player->getComponent<CTransform>().pos.x + 64;
+	e->getComponent<CTransform>().pos.x = isLeft ? m_Player->getComponent<CTransform>().pos.x - 16 :
+		m_Player->getComponent<CTransform>().pos.x + 64;
 	e->getComponent<CTransform>().pos.y = m_Player->getComponent<CTransform>().pos.y + 24;
-	e->getComponent<CTransform>().velocity.x = 600.f;
+	e->getComponent<CTransform>().velocity.x = isLeft ? -600.f : 600.f;
 
 	
-	e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Blast));
+	e->addComponent<CAnimation>(isLeft ? m_GameEngine->getAssets().getAnimation(Animations::BlastLeft) :
+		m_GameEngine->getAssets().getAnimation(Animations::Blast));
 	e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
 		e->getComponent<CTransform>().pos.x,
 		e->getComponent<CTransform>().pos.y
@@ -619,7 +670,7 @@ void GameScene::spawnBullet() {
 	e->addComponent<CLifespan>();
 	e->getComponent<CLifespan>().total = 50.f;
 	e->addComponent<CBoundingBox>();
-	e->getComponent<CBoundingBox>().size.x = size.x;
-	e->getComponent<CBoundingBox>().size.y = size.y;
+	e->getComponent<CBoundingBox>().size.x = size.y / 2.f;
+	e->getComponent<CBoundingBox>().size.y = size.y / 2.f;
 }
 
