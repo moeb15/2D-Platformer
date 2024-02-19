@@ -16,7 +16,8 @@ typedef std::tuple<
 	CState,
 	CShape,
 	CDraggable,
-	CSpeed
+	CSpeed,
+	CLevel
 > ComponentTuple;
 
 

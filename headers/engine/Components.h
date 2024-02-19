@@ -108,3 +108,10 @@ public:
 	bool has = false;
 
 };
+
+class CLevel {
+public:
+	std::string path;
+	bool has = false;
+
+};
