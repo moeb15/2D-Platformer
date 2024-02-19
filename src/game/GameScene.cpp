@@ -1,6 +1,7 @@
 #include "game/GameScene.h"
 #include "engine/GameEngine.h"
 #include "game/MenuScene.h"
+#include "game/LevelSelectScene.h"
 #include "engine/Physics.h"
 #include <iostream>
 #include <fstream>
@@ -40,6 +41,7 @@ void GameScene::init(const std::string& levelPath) {
 void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addTexture(Textures::Brick, "graphics/brickTexture.png");
 	m_GameEngine->getAssets().addTexture(Textures::Ground, "graphics/dungeonGround.png");
+	m_GameEngine->getAssets().addTexture(Textures::DoorExit, "graphics/dungeonDoorClosed.png");
 	m_GameEngine->getAssets().addTexture(Textures::QuestionBox, "graphics/questionBoxAnimation.png");
 	m_GameEngine->getAssets().addTexture(Textures::Explosion, "graphics/shittyExplosion.png");
 	m_GameEngine->getAssets().addTexture(Textures::Enemy, "graphics/dungeonEnemy.png");
@@ -72,6 +74,7 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addAnimation(Animations::QuestionBox);
 	m_GameEngine->getAssets().addAnimation(Animations::Explosion);
 	m_GameEngine->getAssets().addAnimation(Animations::Enemy);
+	m_GameEngine->getAssets().addAnimation(Animations::DoorExit);
 }
 
 
@@ -100,6 +103,9 @@ void GameScene::loadLevel(const std::string& levelPath){
 		}
 		else if (fileEntities[0] == "AI") {
 			addEnemy(fileEntities);
+		}
+		else if (fileEntities[0] == "Door") {
+			addDoor(fileEntities);
 		}
 
 		fileEntities.clear();
@@ -162,6 +168,30 @@ void GameScene::addEnemy(std::vector<std::string>& fileEntities) {
 
 	e->addComponent<CBoundingBox>();
 	e->getComponent<CBoundingBox>().has = true;
+	e->getComponent<CBoundingBox>().size.x = size.x;
+	e->getComponent<CBoundingBox>().size.y = size.y;
+}
+
+
+void GameScene::addDoor(std::vector<std::string>& fileEntities) {
+	sf::Vector2u m_WindowSize = m_GameEngine->getWindow().getSize();
+	Vec2 posn(std::stoi(fileEntities[2]), std::stoi(fileEntities[3]));
+	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::DoorExit);
+	Vec2 size(texture.getSize().x, texture.getSize().y);
+
+	auto e = m_EntityManager.addEntity(Entities::Door);
+	e->addComponent<CTransform>();
+	e->getComponent<CTransform>().pos.x = posn.x * 64;
+	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 3) * 64;
+
+	e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::DoorExit));
+	e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
+		e->getComponent<CTransform>().pos.x,
+		e->getComponent<CTransform>().pos.y
+	));
+	e->getComponent<CAnimation>().animation.setRepeat(true);
+
+	e->addComponent<CBoundingBox>();
 	e->getComponent<CBoundingBox>().size.x = size.x;
 	e->getComponent<CBoundingBox>().size.y = size.y;
 }
@@ -338,7 +368,9 @@ void GameScene::sAnimation() {
 void GameScene::sDoAction(const Action& action){
 	if (action.getType() == Actions::Start) {
 		if (action.getName() == Actions::Quit) {
-			m_GameEngine->changeScene(Scenes::LevelSelect, nullptr);
+			std::shared_ptr<LevelSelectScene> lvlSelect(
+				new LevelSelectScene(m_GameEngine, "levels/rooms/levelSelect.txt"));
+			m_GameEngine->changeScene(Scenes::LevelSelect, lvlSelect);
 		}
 		if (action.getName() == Actions::Right) {
 			m_Player->getComponent<CInput>().right = true;
@@ -656,8 +688,40 @@ void GameScene::sRender(){
 		window.draw(m_Background);
 	}
 
+	// draw door first
+	for (auto& e : m_EntityManager.getEntities(Entities::Door)) {
+		auto& transform = e->getComponent<CTransform>();
+		if (!m_DrawBox) {
+			if (e->hasComponent<CAnimation>()) {
+				auto& animation = e->getComponent<CAnimation>().animation;
+				animation.getSprite().setRotation(transform.angle);
+				animation.getSprite().setPosition(
+					transform.pos.x,
+					transform.pos.y);
+
+				window.draw(animation.getSprite());
+			}
+		}
+		else {
+			if (e->hasComponent<CBoundingBox>()) {
+				auto& size = e->getComponent<CBoundingBox>().size;
+				sf::RectangleShape box;
+				box.setSize(sf::Vector2f(size.x, size.y));
+				box.setPosition(transform.pos.x, transform.pos.y);
+				box.setFillColor(sf::Color(0, 0, 0, 0));
+				box.setOutlineColor(sf::Color(0, 0, 0));
+				box.setOutlineThickness(1.f);
+				window.draw(box);
+			}
+		}
+	}
+
 	for (auto& e : m_EntityManager.getEntities()) {
 		auto& transform = e->getComponent<CTransform>();
+		// skip door
+		if (e->tag() == Entities::Door) {
+			continue;
+		}
 		if (!m_DrawBox) {
 			if (e->hasComponent<CAnimation>()) {
 				auto& animation = e->getComponent<CAnimation>().animation;

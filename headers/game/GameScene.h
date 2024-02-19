@@ -41,6 +41,7 @@ private:
 	void loadLevel(const std::string& levelPath);
 	void addTile(std::vector<std::string>& v, const std::string& type);
 	void addEnemy(std::vector<std::string>& v);
+	void addDoor(std::vector<std::string>& v);
 	void spawnPlayer();
 	
 
