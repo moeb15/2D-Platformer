@@ -18,3 +18,4 @@ Vec2 operator/(const Vec2& v, float f);
 void normalize(Vec2& v);
 float lenSq(Vec2& v);
 float len(Vec2& v);
+float dist(Vec2& v, Vec2& u);

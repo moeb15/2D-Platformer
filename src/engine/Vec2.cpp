@@ -65,3 +65,8 @@ float len(Vec2& v) {
 	float lenSq = v.x * v.x + v.y * v.y;
 	return sqrtf(lenSq);
 }
+
+float dist(Vec2& v, Vec2& u) {
+	Vec2 r = v - u;
+	return len(r);
+}
