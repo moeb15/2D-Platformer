@@ -338,7 +338,7 @@ void GameScene::sAnimation() {
 void GameScene::sDoAction(const Action& action){
 	if (action.getType() == Actions::Start) {
 		if (action.getName() == Actions::Quit) {
-			m_GameEngine->changeScene(Scenes::Main, nullptr);
+			m_GameEngine->changeScene(Scenes::LevelSelect, nullptr);
 		}
 		if (action.getName() == Actions::Right) {
 			m_Player->getComponent<CInput>().right = true;
@@ -543,6 +543,11 @@ void GameScene::sCollision(){
 				e->destroy();
 				b->destroy();
 			}
+		}
+		// collision with player
+		Vec2 overlap = Physics::GetOverlap(e, m_Player);
+		if (overlap.x > 0.0f && overlap.y > 0.0f) {
+			std::cout << "Collision with player" << std::endl;
 		}
 	}
 
