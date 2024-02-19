@@ -101,3 +101,10 @@ public:
 
 	CState(){}
 };
+
+class CSpeed {
+public:
+	float maxSpeed;
+	bool has = false;
+
+};

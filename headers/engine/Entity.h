@@ -15,7 +15,8 @@ typedef std::tuple<
 	CGravity,
 	CState,
 	CShape,
-	CDraggable
+	CDraggable,
+	CSpeed
 > ComponentTuple;
 
 
