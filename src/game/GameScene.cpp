@@ -12,22 +12,38 @@ GameScene::GameScene(GameEngine* gameEngine, const std::string& levelPath) :
 	m_Level(levelPath),
 	m_GameView(m_GameEngine->getWindow().getDefaultView()),
 	m_GridSize(64, 64){
-	std::size_t found = levelPath.find_last_of("/\\");
-	m_LevelTitle = levelPath.substr(found+1);
-	// removing .txt from level title
-	for (int i = 0; i < 4; i++) {
-		m_LevelTitle.pop_back();
-	}
-
-	m_mShape.setRadius(6.f);
-	m_mShape.setFillColor(sf::Color(255, 0, 0));
-	m_mShape.setOrigin(2, 2);
-
+	
 	init(levelPath);
 }
 
 
 void GameScene::init(const std::string& levelPath) {
+	std::size_t found = levelPath.find_last_of("/\\");
+	m_LevelTitle = levelPath.substr(found + 1);
+	// removing .txt from level title
+	for (int i = 0; i < 4; i++) {
+		m_LevelTitle.pop_back();
+	}
+
+	m_GameTime = sf::Time::Zero;
+
+	m_TimeText.setString(std::to_string(m_GameTime.asSeconds()));
+	m_TimeText.setFillColor(sf::Color::White);
+	m_TimeText.setFont(m_GameEngine->getAssets().getFont(Fonts::Main));
+	m_TimeText.setCharacterSize(50);
+	sf::FloatRect textRect = m_TimeText.getLocalBounds();
+	
+
+	m_TimeText.setOrigin(
+		textRect.left + textRect.width / 2.f,
+		textRect.top + textRect.height / 2.f
+		);
+
+	m_TimeText.setPosition(
+		m_GameView.getCenter().x,
+		25
+	);
+
 	m_EntityManager = EntityManager();
 
 	registerAction(sf::Keyboard::W, Actions::Jump);
@@ -301,6 +317,9 @@ void GameScene::update(float dt){
 	m_EntityManager.update();
 	//std::cout << m_EntityManager.getEntities().size() << std::endl;
 	
+	m_GameTime += sf::seconds(dt);
+	m_TimeText.setString(std::to_string(m_GameTime.asSeconds()));
+
 	if (!m_Paused) {
 		sLifespan(dt);
 		sAI();
@@ -769,6 +788,9 @@ void GameScene::sRender(){
 			}
 		}
 	}
+
+	m_TimeText.setPosition(m_GameView.getCenter().x, 25);
+	window.draw(m_TimeText);
 
 //	m_mShape.setPosition(sf::Vector2f(m_mPos.x, m_mPos.y));
 //	window.draw(m_mShape);

@@ -17,6 +17,8 @@ private:
 	sf::CircleShape m_mShape;
 	sf::Sprite m_Background;
 	std::string m_LevelTitle;
+	sf::Time m_GameTime;
+	sf::Text m_TimeText;
 
 public:
 	GameScene(GameEngine* gameEngine, const std::string& levelPath);
