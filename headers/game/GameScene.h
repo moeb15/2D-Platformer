@@ -16,6 +16,7 @@ private:
 	Vec2 m_mPos;
 	sf::CircleShape m_mShape;
 	sf::Sprite m_Background;
+	std::string m_LevelTitle;
 
 public:
 	GameScene(GameEngine* gameEngine, const std::string& levelPath);

@@ -12,6 +12,12 @@ GameScene::GameScene(GameEngine* gameEngine, const std::string& levelPath) :
 	m_Level(levelPath),
 	m_GameView(m_GameEngine->getWindow().getDefaultView()),
 	m_GridSize(64, 64){
+	std::size_t found = levelPath.find_last_of("/\\");
+	m_LevelTitle = levelPath.substr(found+1);
+	// removing .txt from level title
+	for (int i = 0; i < 4; i++) {
+		m_LevelTitle.pop_back();
+	}
 
 	m_mShape.setRadius(6.f);
 	m_mShape.setFillColor(sf::Color(255, 0, 0));
@@ -595,7 +601,8 @@ void GameScene::sCollision(){
 		// collision with player
 		Vec2 overlap = Physics::GetOverlap(e, m_Player);
 		if (overlap.x > 0.0f && overlap.y > 0.0f) {
-			std::cout << "Collision with player" << std::endl;
+			m_Player->getComponent<CTransform>().pos = Vec2(1, 1);
+			m_Player->getComponent<CState>().state = States::Air;
 		}
 	}
 
