@@ -52,6 +52,15 @@ Textures::ID toTextureID(Animations::Type type) {
 
 	case Animations::Enemy:
 		return Textures::Enemy;
+
+	case Animations::DoorEnter:
+		return Textures::DoorEnter;
+
+	case Animations::DoorExit:
+		return Textures::DoorExit;
+
+	case Animations::Gravel:
+		return Textures::Gravel;
 	}
 }
 

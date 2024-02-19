@@ -50,5 +50,14 @@ std::vector<AnimationData> initializeAnimationData() {
 	data[Animations::Enemy].frameCount = 1;
 	data[Animations::Enemy].duration = 60;
 
+	data[Animations::Gravel].frameCount = 1;
+	data[Animations::Gravel].duration = 60;
+
+	data[Animations::DoorEnter].frameCount = 1;
+	data[Animations::DoorEnter].duration = 60;
+
+	data[Animations::DoorExit].frameCount = 1;
+	data[Animations::DoorExit].duration = 60;
+
 	return data;
 }

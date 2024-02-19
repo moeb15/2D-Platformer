@@ -9,7 +9,8 @@ namespace Entities {
 		Tile,
 		Floor,
 		QuestionBox,
-		Bullet
+		Bullet,
+		Door,
 	};
 }
 
@@ -27,6 +28,7 @@ namespace Actions {
 		Up,
 		Down,
 		Jump,
+		Dash,
 		Shoot,
 		Quit,
 		Select,
@@ -35,6 +37,8 @@ namespace Actions {
 		MouseRight,
 		MouseMoved,
 		Pause,
+		Copy,
+		Interact
 	};
 }
 
@@ -43,6 +47,7 @@ namespace Scenes {
 		Main,
 		Game,
 		Editor,
+		LevelSelect,
 		CustomLevels,
 	};
 }
@@ -64,6 +69,9 @@ namespace Animations {
 		QuestionBox,
 		Explosion,
 		Enemy,
+		Gravel,
+		DoorExit,
+		DoorEnter,
 		AnimationCount
 	};
 }
