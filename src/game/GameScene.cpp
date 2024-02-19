@@ -27,6 +27,7 @@ void GameScene::init(const std::string& levelPath) {
 	registerAction(sf::Keyboard::A, Actions::Left);
 	registerAction(sf::Keyboard::D, Actions::Right);
 	registerAction(sf::Keyboard::J, Actions::Shoot);
+	registerAction(sf::Keyboard::K, Actions::Dash);
 	registerAction(sf::Keyboard::Escape, Actions::Quit);
 	registerAction(sf::Keyboard::B, Actions::ToggleBox);
 	registerAction(sf::Keyboard::P, Actions::Pause);
@@ -119,6 +120,9 @@ void GameScene::spawnPlayer() {
 	m_Player->addComponent<CBoundingBox>();
 	m_Player->getComponent<CBoundingBox>().size = Vec2(64,80);
 	m_Player->getComponent<CBoundingBox>().has = true;
+
+	m_Player->addComponent<CSpeed>();
+	m_Player->getComponent<CSpeed>().maxSpeed = 400;
 
 	m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Idle));
 	m_Player->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
@@ -356,6 +360,9 @@ void GameScene::sDoAction(const Action& action){
 		else {
 			m_Player->getComponent<CInput>().shoot = false;
 		}
+		if (action.getName() == Actions::Dash) {
+			m_Player->getComponent<CSpeed>().maxSpeed = 800;
+		}
 		if (action.getName() == Actions::Pause) {
 			m_Paused = !m_Paused;
 		}
@@ -388,26 +395,31 @@ void GameScene::sDoAction(const Action& action){
 		if (action.getName() == Actions::Shoot) {
 			m_Player->getComponent<CInput>().shoot = false;
 		}
+		if (action.getName() == Actions::Dash) {
+			m_Player->getComponent<CSpeed>().maxSpeed = 400;
+		}
 	}
 }
 
 void GameScene::sMovement(float dt){
 	Vec2 playerVel;
 	if (m_Player->getComponent<CInput>().right) {
-		if (m_Player->getComponent<CTransform>().velocity.x < 400) {
+		if (m_Player->getComponent<CTransform>().velocity.x < 
+			m_Player->getComponent<CSpeed>().maxSpeed) {
 			playerVel.x = m_Player->getComponent<CTransform>().velocity.x + 100;
 		}
 		else {
-			playerVel.x = 400;
+			playerVel.x = m_Player->getComponent<CSpeed>().maxSpeed;
 		}
 	}
 
 	if (m_Player->getComponent<CInput>().left) {
-		if (m_Player->getComponent<CTransform>().velocity.x > -400) {
+		if (m_Player->getComponent<CTransform>().velocity.x > 
+			-m_Player->getComponent<CSpeed>().maxSpeed) {
 			playerVel.x = m_Player->getComponent<CTransform>().velocity.x - 100;
 		}
 		else {
-			playerVel.x = -400;
+			playerVel.x = -m_Player->getComponent<CSpeed>().maxSpeed;
 		}
 	}
 
@@ -693,10 +705,10 @@ void GameScene::spawnBullet() {
 
 	auto e = m_EntityManager.addEntity(Entities::Bullet);
 	e->addComponent<CTransform>();
-	e->getComponent<CTransform>().pos.x = isLeft ? m_Player->getComponent<CTransform>().pos.x - 16 :
-		m_Player->getComponent<CTransform>().pos.x + 64;
+	e->getComponent<CTransform>().pos.x = isLeft ? m_Player->getComponent<CTransform>().pos.x :
+		m_Player->getComponent<CTransform>().pos.x + 48;
 	e->getComponent<CTransform>().pos.y = m_Player->getComponent<CTransform>().pos.y + 24;
-	e->getComponent<CTransform>().velocity.x = isLeft ? -600.f : 600.f;
+	e->getComponent<CTransform>().velocity.x = isLeft ? -800.f : 800.f;
 
 	
 	e->addComponent<CAnimation>(isLeft ? m_GameEngine->getAssets().getAnimation(Animations::BlastLeft) :
