@@ -29,6 +29,7 @@ public:
 	void sAnimation();
 	void sMovement(float dt);
 	void sCollision();
+	void sAI();
 	void sLifespan(float dt);
 	virtual void sDoAction(const Action& action);
 	virtual void sRender();

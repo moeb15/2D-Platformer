@@ -143,7 +143,7 @@ void GameScene::addEnemy(std::vector<std::string>& fileEntities) {
 	e->addComponent<CTransform>();
 	e->getComponent<CTransform>().pos.x = posn.x * 64;
 	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 3) * 64;
-	e->getComponent<CTransform>().velocity.x = 50.f;
+	//e->getComponent<CTransform>().velocity.x = 50.f;
 
 	e->addComponent<CGravity>();
 	e->addComponent<CState>();
@@ -250,6 +250,7 @@ void GameScene::update(float dt){
 	
 	if (!m_Paused) {
 		sLifespan(dt);
+		sAI();
 		sMovement(dt);
 		sDraggable();
 		sCollision();
@@ -307,7 +308,6 @@ void GameScene::sAnimation() {
 				m_Player->getComponent<CAnimation>().animation.getType() == Animations::ShootLeft) {
 				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::IdleLeft));
 			}
-			m_Player->getComponent<CAnimation>().animation.setRepeat(true);
 		}
 	}
 	if (m_Player->getComponent<CState>().state == States::Air) {
@@ -324,7 +324,7 @@ void GameScene::sAnimation() {
 	for (auto& e : m_EntityManager.getEntities()) {
 		if (e->hasComponent<CAnimation>()) {
 			e->getComponent<CAnimation>().animation.update();
-			if (e->getComponent<CAnimation>().animation.hasEnded()) {
+			if (e->getComponent<CAnimation>().animation.hasEnded() && e->tag() != Entities::Player) {
 				e->destroy();
 			}
 		}
@@ -452,6 +452,46 @@ void GameScene::sDraggable() {
 	}
 }
 
+void GameScene::sAI() {
+	Vec2 eDist;
+	for (auto& e : m_EntityManager.getEntities(Entities::Enemy)) {
+		for (auto& f : m_EntityManager.getEntities()) {
+			// use m_Player
+			if (f->tag() == Entities::Player) {
+				continue;
+			}
+			// ignore other enemies
+			if (f->tag() == Entities::Enemy) {
+				continue;
+			}
+			eDist = e->getComponent<CTransform>().pos - m_Player->getComponent<CTransform>().pos;
+			// if the player is far away, do nothing
+			if (len(eDist) > 384.f) {
+				e->getComponent<CTransform>().velocity.x = 0;
+				continue;
+			}
+			// check if there is an entity between the player and the enemy
+			Physics::Intersect entityIntersect = Physics::EntityIntersection(
+				e->getComponent<CTransform>().pos,
+				m_Player->getComponent<CTransform>().pos,
+				f
+			);
+			if (entityIntersect.isIntersect) {
+				e->getComponent<CTransform>().velocity.x = 0;
+			}
+			else {
+				if (e->getComponent<CTransform>().pos.x <
+					m_Player->getComponent<CTransform>().pos.x) {
+					e->getComponent<CTransform>().velocity.x = 150.f;
+				}
+				else {
+					e->getComponent<CTransform>().velocity.x = -150.f;
+				}
+			}
+		}
+	}
+}
+
 void GameScene::sCollision(){
 	for (auto& e : m_EntityManager.getEntities(Entities::Enemy)) {
 		if (e->getComponent<CTransform>().pos.x < 64) {
@@ -467,14 +507,14 @@ void GameScene::sCollision(){
 					if (prevOverlap.y > 0 && e->getComponent<CTransform>().prevPos.x >
 						f->getComponent<CTransform>().prevPos.x) {
 						e->getComponent<CTransform>().pos.x += overlap.x;
-						e->getComponent<CTransform>().velocity.x =
-							-e->getComponent<CTransform>().velocity.x;
+						//e->getComponent<CTransform>().velocity.x =
+						//	-e->getComponent<CTransform>().velocity.x;
 					}
 					if (prevOverlap.y > 0 && e->getComponent<CTransform>().prevPos.x <
 						f->getComponent<CTransform>().prevPos.x) {
 						e->getComponent<CTransform>().pos.x -= overlap.x;
-						e->getComponent<CTransform>().velocity.x =
-							-e->getComponent<CTransform>().velocity.x;
+						//e->getComponent<CTransform>().velocity.x =
+						//	-e->getComponent<CTransform>().velocity.x;
 					}
 					if (prevOverlap.x > 0) {
 						e->getComponent<CTransform>().pos.y -= overlap.y;
