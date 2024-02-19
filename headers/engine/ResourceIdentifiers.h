@@ -9,14 +9,18 @@ namespace Textures {
 		Run,
 		RunLeft,
 		Jump,
+		JumpLeft,
 		Shoot,
+		ShootLeft,
 		Brick,
 		Ground,
 		Explosion,
 		QuestionBox,
 		Enemy,
 		Background,
+		Menu,
 		Blast,
+		BlastLeft,
 	};
 }
 

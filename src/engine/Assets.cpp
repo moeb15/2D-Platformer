@@ -23,11 +23,20 @@ Textures::ID toTextureID(Animations::Type type) {
 	case Animations::Jump:
 		return Textures::Jump;
 
+	case Animations::JumpLeft:
+		return Textures::JumpLeft;
+
 	case Animations::Shoot:
 		return Textures::Shoot;
 
+	case Animations::ShootLeft:
+		return Textures::ShootLeft;
+
 	case Animations::Blast:
 		return Textures::Blast;
+
+	case Animations::BlastLeft:
+		return Textures::BlastLeft;
 
 	case Animations::Tile:
 		return Textures::Brick;

@@ -14,6 +14,9 @@ std::vector<AnimationData> initializeAnimationData() {
 	data[Animations::Jump].frameCount = 1;
 	data[Animations::Jump].duration = 60;
 
+	data[Animations::JumpLeft].frameCount = 1;
+	data[Animations::JumpLeft].duration = 60;
+
 	data[Animations::Run].frameCount = 4;
 	data[Animations::Run].duration = 5;
 
@@ -23,8 +26,14 @@ std::vector<AnimationData> initializeAnimationData() {
 	data[Animations::Shoot].frameCount = 1;
 	data[Animations::Shoot].duration = 30;
 
-	data[Animations::Blast].frameCount = 5;
-	data[Animations::Blast].duration = 5;
+	data[Animations::ShootLeft].frameCount = 1;
+	data[Animations::ShootLeft].duration = 30;
+
+	data[Animations::Blast].frameCount = 4;
+	data[Animations::Blast].duration = 4;
+
+	data[Animations::BlastLeft].frameCount = 4;
+	data[Animations::BlastLeft].duration = 4;
 
 	data[Animations::QuestionBox].frameCount = 4;
 	data[Animations::QuestionBox].duration = 15;
