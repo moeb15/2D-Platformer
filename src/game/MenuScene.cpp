@@ -16,10 +16,12 @@ MenuScene::MenuScene(GameEngine* gameEngine):
 }
 
 void MenuScene::init() {
-	m_Background.setSize(sf::Vector2f(
+	/*m_Background.setSize(sf::Vector2f(
 		(float)m_GameEngine->getWindow().getSize().x,
 		(float)m_GameEngine->getWindow().getSize().y));
-	m_Background.setFillColor(sf::Color(50, 50, 155));
+	m_Background.setFillColor(sf::Color(50, 50, 155));*/
+	m_GameEngine->getAssets().addTexture(Textures::Menu, "graphics/menuScreen.png");
+	m_Background.setTexture(m_GameEngine->getAssets().getTexture(Textures::Menu));
 
 	sf::Text level1;
 	sf::Text level2;
@@ -36,7 +38,7 @@ void MenuScene::init() {
 	levelEditor.setFont(m_GameEngine->getAssets().getFont(Fonts::Main));
 
 	m_Title.setCharacterSize(80);
-	m_Title.setString("MEGA-MARIO WORLD");
+	m_Title.setString("PLATFORMER");
 	m_Title.setPosition(25, 0);
 
 	m_Subtext.setCharacterSize(50);

@@ -8,7 +8,7 @@
 
 class CustomLevelScene : public Scene {
 private:
-	sf::RectangleShape m_Background;
+	sf::Sprite m_Background;
 	sf::Text m_Title;
 	sf::Text m_Subtext;
 	std::vector<sf::Text> m_Options;
