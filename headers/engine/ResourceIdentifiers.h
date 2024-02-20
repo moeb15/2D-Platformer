@@ -12,6 +12,8 @@ namespace Textures {
 		JumpLeft,
 		Shoot,
 		ShootLeft,
+		Climb,
+		ClimbLeft,
 		Brick,
 		Ground,
 		Gravel,
@@ -24,6 +26,7 @@ namespace Textures {
 		Menu,
 		Blast,
 		BlastLeft,
+		Climbable,
 	};
 }
 

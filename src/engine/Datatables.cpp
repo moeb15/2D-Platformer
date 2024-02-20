@@ -59,5 +59,14 @@ std::vector<AnimationData> initializeAnimationData() {
 	data[Animations::DoorExit].frameCount = 1;
 	data[Animations::DoorExit].duration = 60;
 
+	data[Animations::Climbable].frameCount = 1;
+	data[Animations::Climbable].duration = 60;
+
+	data[Animations::Climb].frameCount = 1;
+	data[Animations::Climb].duration = 60;
+
+	data[Animations::ClimbLeft].frameCount = 1;
+	data[Animations::ClimbLeft].duration = 60;
+
 	return data;
 }

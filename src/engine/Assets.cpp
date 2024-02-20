@@ -61,6 +61,15 @@ Textures::ID toTextureID(Animations::Type type) {
 
 	case Animations::Gravel:
 		return Textures::Gravel;
+
+	case Animations::Climb:
+		return Textures::Climb;
+
+	case Animations::ClimbLeft:
+		return Textures::ClimbLeft;
+
+	case Animations::Climbable:
+		return Textures::Climbable;
 	}
 }
 

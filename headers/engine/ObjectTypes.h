@@ -11,6 +11,7 @@ namespace Entities {
 		QuestionBox,
 		Bullet,
 		Door,
+		Climbable,
 	};
 }
 
@@ -49,6 +50,7 @@ namespace Scenes {
 		Editor,
 		LevelSelect,
 		CustomLevels,
+		Records,
 	};
 }
 
@@ -62,6 +64,8 @@ namespace Animations {
 		JumpLeft,
 		Shoot,
 		ShootLeft,
+		Climb,
+		ClimbLeft,
 		Blast,
 		BlastLeft,
 		Tile,
@@ -72,6 +76,7 @@ namespace Animations {
 		Gravel,
 		DoorExit,
 		DoorEnter,
+		Climbable,
 		AnimationCount
 	};
 }
@@ -80,5 +85,6 @@ namespace States {
 	enum Type {
 		Air,
 		Ground,
+		Climb,
 	};
 }
