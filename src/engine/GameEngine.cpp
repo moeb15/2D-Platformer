@@ -11,7 +11,7 @@ GameEngine::GameEngine():
 }
 
 void GameEngine::init() {
-	m_Window.create(sf::VideoMode(1280, 720), "MegaWorld", sf::Style::Default);
+	m_Window.create(sf::VideoMode(1280, 720), "MegaWorld", sf::Style::Close);
 	m_Window.setFramerateLimit(60);
 	m_Assets.addFont(Fonts::Main, "fonts/ByteBounce.ttf");
 	m_Assets.addFont(Fonts::Edit, "fonts/Roboto-Bold.ttf");
