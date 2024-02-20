@@ -109,7 +109,7 @@ void GameScene::loadAssets() {
 
 void GameScene::loadLevel(const std::string& levelPath){
 	m_Background.setTexture(m_GameEngine->getAssets().getTexture(Textures::Background));
-	m_Background.setTextureRect(sf::IntRect(0, 0, 128000, 720));
+	m_Background.setTextureRect(sf::IntRect(0, 0, 128000, 72000));
 
 	std::fstream file;
 	file.open(levelPath);
@@ -424,39 +424,47 @@ void GameScene::sAnimation() {
 			}
 		}
 	}
-	if (m_Player->getComponent<CState>().state == States::Air) {
+	else if (m_Player->getComponent<CState>().state == States::Air) {
 		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run ||
-			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Idle) {
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Idle ||
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Climb) {
 			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Jump));
 		}
 		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
-			m_Player->getComponent<CAnimation>().animation.getType() == Animations::IdleLeft) {
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::IdleLeft ||
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft) {
 			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::JumpLeft));
 		}
 	}
-	if (m_Player->getComponent<CState>().state == States::Climb) {
+	else if (m_Player->getComponent<CState>().state == States::Climb) {
 		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run || 
 			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Jump) {
 			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::ClimbLeft));
 			//m_Player->getComponent<CAnimation>().animation.setRepeat(true);
 		}
-		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
+		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
 			m_Player->getComponent<CAnimation>().animation.getType() == Animations::JumpLeft) {
 			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Climb));
 			//m_Player->getComponent<CAnimation>().animation.setRepeat(true);
 		}
-		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft) {
-			if (m_Player->getComponent<CInput>().left) {
-				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::JumpLeft));
-				m_Player->getComponent<CAnimation>().animation.setRepeat(true);
+		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft) {
+			if (m_Player->getComponent<CInput>().left ||
+				(m_Player->getComponent<CInput>().left &&
+					m_Player->getComponent<CInput>().up)) {
 				m_Player->getComponent<CState>().state = States::Air;
+				// setting animation here caused bugs, only set animations in 1 place, just change state to 
+				// control what the animation changes to
+				//m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::JumpLeft));
+				//m_Player->getComponent<CAnimation>().animation.setRepeat(true);
 			}
 		}
-		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Climb) {
-			if (m_Player->getComponent<CInput>().right) {
-				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Jump));
-				m_Player->getComponent<CAnimation>().animation.setRepeat(true);
+		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Climb) {
+			if (m_Player->getComponent<CInput>().right ||
+				(m_Player->getComponent<CInput>().right &&
+					m_Player->getComponent<CInput>().up)) {
 				m_Player->getComponent<CState>().state = States::Air;
+				//m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Jump));
+				//m_Player->getComponent<CAnimation>().animation.setRepeat(true);
 			}
 		}
 	}
@@ -489,9 +497,13 @@ void GameScene::sDoAction(const Action& action){
 				m_Player->getComponent<CState>().state = States::Air;
 				m_Player->getComponent<CInput>().up = true;
 			}
+			else {
+				m_Player->getComponent<CInput>().up = false;
+			}
 		}
 		if (action.getName() == Actions::Shoot 
-			&& m_EntityManager.getEntities(Entities::Bullet).size() <= 3) {
+			&& m_EntityManager.getEntities(Entities::Bullet).size() <= 3
+			&& m_Player->getComponent<CState>().state != States::Climb) {
 			m_Player->getComponent<CInput>().shoot = true;
 			spawnBullet();
 		}
@@ -499,7 +511,7 @@ void GameScene::sDoAction(const Action& action){
 			m_Player->getComponent<CInput>().shoot = false;
 		}
 		if (action.getName() == Actions::Dash) {
-			m_Player->getComponent<CSpeed>().maxSpeed = 800;
+			m_Player->getComponent<CSpeed>().maxSpeed = 600;
 		}
 		if (action.getName() == Actions::Pause) {
 			m_Paused = !m_Paused;
@@ -565,20 +577,19 @@ void GameScene::sMovement(float dt){
 	}
 
 	if (m_Player->getComponent<CInput>().up &&
-		m_Player->getComponent<CTransform>().velocity.y >= 0) {
-		if(m_Player->getComponent<CState>().state == States::Ground)
-		playerVel.y = -850;
+		m_Player->getComponent<CTransform>().velocity.y >= 0 &&
+		m_Player->getComponent<CState>().state == States::Ground) {
+		playerVel.y = -650;
 		m_Player->getComponent<CState>().state = States::Air;
-	}
-	else if(m_Player->getComponent<CInput>().up &&
-		m_Player->getComponent<CState>().state == States::Climb){
+	}else if (m_Player->getComponent<CInput>().up &&
+		m_Player->getComponent<CState>().state == States::Climb) {
 		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft) {
-			playerVel.y = -550;
+			playerVel.y = -450;
 			playerVel.x = -400;
 			m_Player->getComponent<CState>().state = States::Air;
 		}
 		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Climb) {
-			playerVel.y = -550;
+			playerVel.y = -450;
 			playerVel.x = 400;
 			m_Player->getComponent<CState>().state = States::Air;
 		}
@@ -586,7 +597,6 @@ void GameScene::sMovement(float dt){
 	else {
 		playerVel.y = m_Player->getComponent<CTransform>().velocity.y;
 	}
-
 
 	m_Player->getComponent<CTransform>().velocity = playerVel;
 
