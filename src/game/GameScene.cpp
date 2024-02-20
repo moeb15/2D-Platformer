@@ -66,6 +66,7 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addTexture(Textures::Ground, "graphics/dungeonGround.png");
 	m_GameEngine->getAssets().addTexture(Textures::DoorExit, "graphics/dungeonDoorClosed.png");
 	m_GameEngine->getAssets().addTexture(Textures::QuestionBox, "graphics/questionBoxAnimation.png");
+	m_GameEngine->getAssets().addTexture(Textures::Climbable, "graphics/climbableWall.png");
 	m_GameEngine->getAssets().addTexture(Textures::Explosion, "graphics/shittyExplosion.png");
 	m_GameEngine->getAssets().addTexture(Textures::Enemy, "graphics/dungeonEnemy.png");
 	m_GameEngine->getAssets().addTexture(Textures::Background, "graphics/dungeonBackground-version2.png");
@@ -81,6 +82,8 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addTexture(Textures::ShootLeft, "graphics/megamanGohanAttackLeft.png");
 	m_GameEngine->getAssets().addTexture(Textures::Blast, "graphics/kiBlast-Sheet.png");
 	m_GameEngine->getAssets().addTexture(Textures::BlastLeft, "graphics/kiBlast-SheetLeft.png");
+	m_GameEngine->getAssets().addTexture(Textures::Climb, "graphics/megamanGohanClimb.png");
+	m_GameEngine->getAssets().addTexture(Textures::ClimbLeft, "graphics/megamanGohanClimbLeft.png");
 
 	m_GameEngine->getAssets().addAnimation(Animations::Idle);
 	m_GameEngine->getAssets().addAnimation(Animations::IdleLeft);
@@ -92,12 +95,15 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addAnimation(Animations::ShootLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Blast);
 	m_GameEngine->getAssets().addAnimation(Animations::BlastLeft);
+	m_GameEngine->getAssets().addAnimation(Animations::Climb);
+	m_GameEngine->getAssets().addAnimation(Animations::ClimbLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Tile);
 	m_GameEngine->getAssets().addAnimation(Animations::Ground);
 	m_GameEngine->getAssets().addAnimation(Animations::QuestionBox);
 	m_GameEngine->getAssets().addAnimation(Animations::Explosion);
 	m_GameEngine->getAssets().addAnimation(Animations::Enemy);
 	m_GameEngine->getAssets().addAnimation(Animations::DoorExit);
+	m_GameEngine->getAssets().addAnimation(Animations::Climbable);
 }
 
 
@@ -299,6 +305,31 @@ void GameScene::addTile(std::vector<std::string>& fileEntities, const std::strin
 		e->getComponent<CBoundingBox>().size.y = size.y;
 
 	}
+	else if (type == "Climbable") {
+		Vec2 posn(std::stoi(fileEntities[2]), std::stoi(fileEntities[3]));
+		sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Climbable);
+		Vec2 size(texture.getSize().x, texture.getSize().y);
+
+		auto e = m_EntityManager.addEntity(Entities::Climbable);
+		e->addComponent<CTransform>();
+		e->getComponent<CTransform>().pos.x = posn.x * size.x;
+		e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 1) * size.y;
+		e->getComponent<CTransform>().has = true;
+
+		e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Climbable));
+		e->getComponent<CAnimation>().animation.setRepeat(true);
+		e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
+			e->getComponent<CTransform>().pos.x,
+			e->getComponent<CTransform>().pos.y
+		));
+
+
+		e->addComponent<CBoundingBox>();
+		e->getComponent<CBoundingBox>().has = true;
+		e->getComponent<CBoundingBox>().size.x = size.x;
+		e->getComponent<CBoundingBox>().size.y = size.y;
+
+	}
 }
 
 void GameScene::exitLevel() {
@@ -401,6 +432,32 @@ void GameScene::sAnimation() {
 		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
 			m_Player->getComponent<CAnimation>().animation.getType() == Animations::IdleLeft) {
 			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::JumpLeft));
+		}
+	}
+	if (m_Player->getComponent<CState>().state == States::Climb) {
+		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run || 
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Jump) {
+			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::ClimbLeft));
+			//m_Player->getComponent<CAnimation>().animation.setRepeat(true);
+		}
+		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::JumpLeft) {
+			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Climb));
+			//m_Player->getComponent<CAnimation>().animation.setRepeat(true);
+		}
+		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft) {
+			if (m_Player->getComponent<CInput>().left) {
+				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::JumpLeft));
+				m_Player->getComponent<CAnimation>().animation.setRepeat(true);
+				m_Player->getComponent<CState>().state = States::Air;
+			}
+		}
+		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Climb) {
+			if (m_Player->getComponent<CInput>().right) {
+				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Jump));
+				m_Player->getComponent<CAnimation>().animation.setRepeat(true);
+				m_Player->getComponent<CState>().state = States::Air;
+			}
 		}
 	}
 
@@ -508,14 +565,28 @@ void GameScene::sMovement(float dt){
 	}
 
 	if (m_Player->getComponent<CInput>().up &&
-		m_Player->getComponent<CTransform>().velocity.y >= 0 &&
-		m_Player->getComponent<CState>().state == States::Ground) {
+		m_Player->getComponent<CTransform>().velocity.y >= 0) {
+		if(m_Player->getComponent<CState>().state == States::Ground)
 		playerVel.y = -850;
 		m_Player->getComponent<CState>().state = States::Air;
+	}
+	else if(m_Player->getComponent<CInput>().up &&
+		m_Player->getComponent<CState>().state == States::Climb){
+		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft) {
+			playerVel.y = -550;
+			playerVel.x = -400;
+			m_Player->getComponent<CState>().state = States::Air;
+		}
+		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Climb) {
+			playerVel.y = -550;
+			playerVel.x = 400;
+			m_Player->getComponent<CState>().state = States::Air;
+		}
 	}
 	else {
 		playerVel.y = m_Player->getComponent<CTransform>().velocity.y;
 	}
+
 
 	m_Player->getComponent<CTransform>().velocity = playerVel;
 
@@ -531,6 +602,11 @@ void GameScene::sMovement(float dt){
 	for (auto& e : m_EntityManager.getEntities()) {
 		e->getComponent<CTransform>().prevPos = e->getComponent<CTransform>().pos;
 		if (e->hasComponent<CGravity>()) {
+			if (e->hasComponent<CState>() &&
+				e->getComponent<CState>().state == States::Climb) {
+				e->getComponent<CTransform>().velocity.y = 
+					e->getComponent<CTransform>().velocity.y * 0.25;
+			}
 			e->getComponent<CTransform>().velocity.y += e->getComponent<CGravity>().gravity * dt * 0.5f;
 		}
 		e->getComponent<CTransform>().pos = e->getComponent<CTransform>().pos +
@@ -710,6 +786,35 @@ void GameScene::sCollision(){
 				}
 			}
 		}
+		// climbable entities
+		if (e->tag() == Entities::Climbable) {
+			Vec2 overlap = Physics::GetOverlap(m_Player, e);
+			Vec2 prevOverlap = Physics::GetPreviousOverlap(m_Player, e);
+			if (overlap.y > 0.0f && overlap.x > 0.0f) {
+				if (prevOverlap.x > 0 && m_Player->getComponent<CTransform>().prevPos.y <
+					e->getComponent<CTransform>().prevPos.y) {
+					m_Player->getComponent<CTransform>().pos.y -= overlap.y;
+					m_Player->getComponent<CTransform>().velocity.y = 0;
+					m_Player->getComponent<CState>().state = States::Ground;
+				}
+				else if (prevOverlap.x > 0 && m_Player->getComponent<CTransform>().prevPos.y >
+					e->getComponent<CTransform>().prevPos.y) {
+					m_Player->getComponent<CTransform>().pos.y += overlap.y;
+					m_Player->getComponent<CTransform>().velocity.y = 0;
+					m_Player->getComponent<CState>().state = States::Air;
+				}
+				if (prevOverlap.y > 0 && m_Player->getComponent<CTransform>().prevPos.x >
+					e->getComponent<CTransform>().prevPos.x) {
+					m_Player->getComponent<CTransform>().pos.x += overlap.x;
+					m_Player->getComponent<CState>().state = States::Climb;
+				}
+				else if (prevOverlap.y > 0 && m_Player->getComponent<CTransform>().prevPos.x <
+					e->getComponent<CTransform>().prevPos.x) {
+					m_Player->getComponent<CTransform>().pos.x -= overlap.x;
+					m_Player->getComponent<CState>().state = States::Climb;
+				}
+			}
+		}
 	}
 }
 
@@ -732,6 +837,7 @@ void GameScene::sRender(){
 	
 	auto& playerPos = m_Player->getComponent<CTransform>().pos;
 	int centerX = std::max(windowSize.x / 2.f, playerPos.x);
+	//int centerY = std::min(windowSize.y / 2.f, playerPos.y);
 	
 	m_GameView.setCenter(centerX, windowSize.y / 2.f);
 	window.setView(m_GameView);
