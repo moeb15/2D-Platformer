@@ -19,6 +19,7 @@ void EditorScene::init() {
 	registerAction(sf::Keyboard::Escape, Actions::Quit);
 	registerAction(sf::Keyboard::D, Actions::Right);
 	registerAction(sf::Keyboard::A, Actions::Left);
+	registerAction(sf::Keyboard::C, Actions::Copy);
 
 	loadAssets();
 	m_Background.setTexture(m_GameEngine->getAssets().getTexture(Textures::Background));
@@ -28,15 +29,17 @@ void EditorScene::init() {
 void EditorScene::loadAssets() {
 	m_GameEngine->getAssets().addTexture(Textures::Brick, "graphics/brickTexture.png");
 	m_GameEngine->getAssets().addTexture(Textures::Ground, "graphics/dungeonGround.png");
-	m_GameEngine->getAssets().addTexture(Textures::QuestionBox, "graphics/questionBoxAnimation.png");
+	m_GameEngine->getAssets().addTexture(Textures::Climbable, "graphics/climbableWall.png");
+	m_GameEngine->getAssets().addTexture(Textures::DoorExit, "graphics/dungeonDoorClosed.png");
 	m_GameEngine->getAssets().addTexture(Textures::Enemy, "graphics/dungeonEnemy.png");
 	m_GameEngine->getAssets().addTexture(Textures::Background, "graphics/dungeonBackground-version2.png");
 	m_GameEngine->getAssets().getTexture(Textures::Background).setRepeated(true);
 
 	m_GameEngine->getAssets().addAnimation(Animations::Tile);
 	m_GameEngine->getAssets().addAnimation(Animations::Ground);
-	m_GameEngine->getAssets().addAnimation(Animations::QuestionBox);
+	m_GameEngine->getAssets().addAnimation(Animations::Climbable);
 	m_GameEngine->getAssets().addAnimation(Animations::Enemy);
+	m_GameEngine->getAssets().addAnimation(Animations::DoorExit);
 }
 
 void EditorScene::saveScene() {
@@ -58,14 +61,20 @@ void EditorScene::saveScene() {
 			newLvl << line;
 			break;
 
-		case Entities::QuestionBox:
-			line = "Tile QuestionBox " + std::to_string((int)pos.x / 64)
+		case Entities::Climbable:
+			line = "Tile Climbable " + std::to_string((int)pos.x / 64)
 				+ " " + std::to_string((int)windowSize.y / 64 - ((int)pos.y / 64 + 1)) + "\n";
 			newLvl << line;
 			break;
 
 		case Entities::Enemy:
-			line = "AI Enemy " + std::to_string((int)pos.x / 128)
+			line = "AI Enemy " + std::to_string((int)pos.x / 64)
+				+ " " + std::to_string((int)windowSize.y / 128 - ((int)pos.y / 128 + 1)) + "\n";
+			newLvl << line;
+			break;
+
+		case Entities::Door:
+			line = "Door Exit " + std::to_string((int)pos.x / 64)
 				+ " " + std::to_string((int)windowSize.y / 128 - ((int)pos.y / 128 + 1)) + "\n";
 			newLvl << line;
 			break;
@@ -86,11 +95,14 @@ void EditorScene::sceneEditor() {
 	if (ImGui::Button("Brick Tile")) {
 		addBrick();
 	}
-	if (ImGui::Button("Question Box Tile")) {
-		addBox();
+	if (ImGui::Button("Climbable Tile")) {
+		addClimable();
 	}
 	if (ImGui::Button("Enemy Entity")) {
 		addEnemy();
+	}
+	if (ImGui::Button("Level-Exit Door")) {
+		addDoor();
 	}
 
 	ImGui::Text("Level Title");
@@ -101,10 +113,16 @@ void EditorScene::sceneEditor() {
 	ImGui::End();
 }
 
-void EditorScene::addGround() {
+void EditorScene::addGround(const Vec2& pos) {
 	auto viewCenter = m_EditorView.getCenter();
 	auto m_WindowSize = m_GameEngine->getWindow().getSize();
-	Vec2 posn(viewCenter.x / 64, viewCenter.y / 64);
+	Vec2 posn;
+	if (pos.x != 0 || pos.y != 0) {
+		posn = pos;
+	}
+	else {
+		posn = Vec2(viewCenter.x / 64, viewCenter.y / 64);
+	}
 	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Ground);
 	Vec2 size(texture.getSize().x, texture.getSize().y);
 
@@ -123,10 +141,16 @@ void EditorScene::addGround() {
 	e->getComponent<CAnimation>().animation.setRepeat(true);
 }
 
-void EditorScene::addBrick() {
+void EditorScene::addBrick(const Vec2& pos) {
 	auto viewCenter = m_EditorView.getCenter();
 	auto m_WindowSize = m_GameEngine->getWindow().getSize();
-	Vec2 posn(viewCenter.x / 64, viewCenter.y / 64);
+	Vec2 posn;
+	if (pos.x != 0 || pos.y != 0) {
+		posn = pos;
+	}
+	else {
+		posn = Vec2(viewCenter.x / 64, viewCenter.y / 64);
+	}
 	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Brick);
 	Vec2 size(texture.getSize().x, texture.getSize().y);
 
@@ -145,21 +169,27 @@ void EditorScene::addBrick() {
 	e->getComponent<CAnimation>().animation.setRepeat(true);
 }
 
-void EditorScene::addBox() {
+void EditorScene::addClimable(const Vec2& pos) {
 	auto viewCenter = m_EditorView.getCenter();
 	auto m_WindowSize = m_GameEngine->getWindow().getSize();
-	Vec2 posn(viewCenter.x / 64, viewCenter.y / 64);
-	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::QuestionBox);
+	Vec2 posn;
+	if (pos.x != 0 || pos.y != 0) {
+		posn = pos;
+	}
+	else {
+		posn = Vec2(viewCenter.x / 64, viewCenter.y / 64);
+	}
+	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Climbable);
 	Vec2 size(texture.getSize().x, texture.getSize().y);
 
-	std::shared_ptr<Entity> e = m_EntityManager.addEntity(Entities::QuestionBox);
+	std::shared_ptr<Entity> e = m_EntityManager.addEntity(Entities::Climbable);
 	e->addComponent<CTransform>();
-	e->getComponent<CTransform>().pos.x = posn.x * 64;
+	e->getComponent<CTransform>().pos.x = posn.x * size.x;
 	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 1) * size.y;
 	e->getComponent<CTransform>().has = true;
 	e->addComponent<CDraggable>();
 
-	e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::QuestionBox));
+	e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Climbable));
 	e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
 		e->getComponent<CTransform>().pos.x,
 		e->getComponent<CTransform>().pos.y
@@ -168,10 +198,16 @@ void EditorScene::addBox() {
 
 }
 
-void EditorScene::addEnemy() {
+void EditorScene::addEnemy(const Vec2& pos) {
 	auto viewCenter = m_EditorView.getCenter();
 	auto m_WindowSize = m_GameEngine->getWindow().getSize();
-	Vec2 posn(viewCenter.x / 64, viewCenter.y / 64);
+	Vec2 posn;
+	if (pos.x != 0 || pos.y != 0) {
+		posn = pos;
+	}
+	else {
+		posn = Vec2(viewCenter.x / 64, viewCenter.y / 64);
+	}
 	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Enemy);
 	Vec2 size(texture.getSize().x, texture.getSize().y);
 
@@ -189,6 +225,35 @@ void EditorScene::addEnemy() {
 	));
 	e->getComponent<CAnimation>().animation.setRepeat(true);
 }
+
+void EditorScene::addDoor(const Vec2& pos) {
+	auto viewCenter = m_EditorView.getCenter();
+	auto m_WindowSize = m_GameEngine->getWindow().getSize();
+	Vec2 posn;
+	if (pos.x != 0 || pos.y != 0) {
+		posn = pos;
+	}
+	else {
+		posn = Vec2(viewCenter.x / 64, viewCenter.y / 64);
+	}
+	sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::DoorExit);
+	Vec2 size(texture.getSize().x, texture.getSize().y);
+
+	std::shared_ptr<Entity> e = m_EntityManager.addEntity(Entities::Door);
+	e->addComponent<CTransform>();
+	e->getComponent<CTransform>().pos.x = posn.x * 64;
+	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 1) * 64;
+	e->getComponent<CTransform>().has = true;
+	e->addComponent<CDraggable>();
+
+	e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::DoorExit));
+	e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
+		e->getComponent<CTransform>().pos.x,
+		e->getComponent<CTransform>().pos.y
+	));
+	e->getComponent<CAnimation>().animation.setRepeat(true);
+}
+
 
 void EditorScene::update(float dt){
 	ImGui::SFML::Update(m_GameEngine->getWindow(), sf::seconds(dt));
@@ -247,10 +312,25 @@ void EditorScene::sDoAction(const Action& action){
 				}
 			}
 		}
-		if (action.getName() == Actions::MouseMoved) {
-			auto mPos = action.getPos();
-			m_MousePos = windowToWorld(mPos);
+		if (action.getName() == Actions::Copy) {
+			for (auto& e : m_EntityManager.getEntities()) {
+				auto mPos = windowToWorld(action.getPos());
+				if (Physics::IsInside(mPos, e)) {
+					std::cout << "Copied" << std::endl;
+					switch (e->tag()) {
+					case Entities::Floor: addGround(mPos + Vec2(128, 0)); break;
+					case Entities::Enemy: addEnemy(mPos + Vec2(128, 0)); break;
+					case Entities::Tile: addBrick(mPos + Vec2(128, 0)); break;
+					case Entities::Climbable: addClimable(mPos + Vec2(128, 0)); break;
+					}
+				}
+			}
 		}
+	}
+
+	if (action.getName() == Actions::MouseMoved) {
+		auto mPos = action.getPos();
+		m_MousePos = windowToWorld(mPos);
 	}
 }
 
