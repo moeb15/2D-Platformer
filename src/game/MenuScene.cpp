@@ -4,6 +4,7 @@
 #include "game/EditorScene.h"
 #include "game/CustomLevelScene.h"
 #include "game/LevelSelectScene.h"
+#include "game/RecordsScene.h"
 
 MenuScene::MenuScene(GameEngine* gameEngine):
 	Scene(gameEngine),
@@ -26,7 +27,7 @@ void MenuScene::init() {
 
 	sf::Text play;
 	//sf::Text level2;
-	//sf::Text level3;
+	sf::Text records;
 	sf::Text customLevels;
 	sf::Text levelEditor;
 
@@ -34,7 +35,7 @@ void MenuScene::init() {
 	m_Subtext.setFont(m_GameEngine->getAssets().getFont(Fonts::Main));
 	play.setFont(m_GameEngine->getAssets().getFont(Fonts::Main));
 	//level2.setFont(m_GameEngine->getAssets().getFont(Fonts::Main));
-	//level3.setFont(m_GameEngine->getAssets().getFont(Fonts::Main));
+	records.setFont(m_GameEngine->getAssets().getFont(Fonts::Main));
 	customLevels.setFont(m_GameEngine->getAssets().getFont(Fonts::Main));
 	levelEditor.setFont(m_GameEngine->getAssets().getFont(Fonts::Main));
 
@@ -53,27 +54,27 @@ void MenuScene::init() {
 
 	play.setCharacterSize(50);
 	//level2.setCharacterSize(50);
-	//level3.setCharacterSize(50);
+	records.setCharacterSize(50);
 	customLevels.setCharacterSize(50);
 	levelEditor.setCharacterSize(50);
 
 	play.setString("PLAY");
 	//level2.setString("LEVEL 2");
-	//level3.setString("LEVEL 3");
 	customLevels.setString("CUSTOM LEVELS");
 	levelEditor.setString("LEVEL EDITOR");
+	records.setString("RECORDS");
 
 	play.setPosition(25, 100);
 	//level2.setPosition(25, 150);
-	//level3.setPosition(25, 200);
+	records.setPosition(25, 250);
 	customLevels.setPosition(25, 150);
 	levelEditor.setPosition(25, 200);
 
 	m_Options.push_back(play);
 	//m_Options.push_back(level2);
-	//m_Options.push_back(level3);
 	m_Options.push_back(customLevels);
 	m_Options.push_back(levelEditor);
+	m_Options.push_back(records);
 
 	registerAction(sf::Keyboard::W, Actions::Up);
 	registerAction(sf::Keyboard::S, Actions::Down);
@@ -119,6 +120,13 @@ void MenuScene::sDoAction(const Action& action){
 
 				m_GameEngine->changeScene(Scenes::Editor,
 					std::static_pointer_cast<Scene>(lvlEditor));
+			}
+			if (m_OptionIndex == 3) {
+				std::shared_ptr<RecordsScene> rec(
+					new RecordsScene(m_GameEngine));
+
+				m_GameEngine->changeScene(Scenes::Records,
+					std::static_pointer_cast<Scene>(rec));
 			}
 		}
 		if (action.getName() == Actions::Quit) {
