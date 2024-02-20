@@ -309,10 +309,16 @@ void GameScene::exitLevel() {
 				new LevelSelectScene(m_GameEngine, "levels/rooms/levelSelect.txt"));
 			m_GameEngine->changeScene(Scenes::LevelSelect, lvlSelect);
 
-			std::ofstream recordsFile("records/records.txt", std::fstream::app);
-			std::string line = m_LevelTitle + " " + std::to_string(m_GameTime.asSeconds()) + "\n";
-			recordsFile << line;
-			recordsFile.close();
+			try {
+				std::ofstream recordsFile("records/records.txt", std::fstream::app);
+				std::string line = m_LevelTitle + " " + std::to_string(m_GameTime.asSeconds()) + "\n";
+				recordsFile << line;
+				recordsFile.close();
+			}
+			catch (std::fstream::failure e) {
+				std::cout << e.what() << std::endl;
+				return;
+			}
 			break;
 		}
 	}
