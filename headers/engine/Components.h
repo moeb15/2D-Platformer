@@ -115,3 +115,9 @@ public:
 	bool has = false;
 
 };
+
+class CAI {
+public:
+	AIStates::Type state = AIStates::Idle;
+	bool has = false;
+};
