@@ -88,3 +88,10 @@ namespace States {
 		Climb,
 	};
 }
+
+namespace AIStates {
+	enum Type {
+		Follow,
+		Idle,
+	};
+}
