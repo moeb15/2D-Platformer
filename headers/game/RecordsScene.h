@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <filesystem>
+#include <unordered_map>
 #include <SFML/Graphics.hpp>
 
 
@@ -13,7 +14,8 @@ private:
 	sf::Text m_Subtext;
 	std::vector<sf::Text> m_Records;
 	sf::View m_RecordsView;
-	std::vector<std::string> m_Levels;
+	std::unordered_map<std::string, 
+		std::vector<float>> m_Levels;
 
 public:
 	RecordsScene(GameEngine* gameEngine);
