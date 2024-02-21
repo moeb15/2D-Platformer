@@ -182,8 +182,8 @@ void GameScene::addEnemy(std::vector<std::string>& fileEntities) {
 	e->addComponent<CTransform>();
 	e->getComponent<CTransform>().pos.x = posn.x * 64;
 	e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 3) * 64;
-	//e->getComponent<CTransform>().velocity.x = 50.f;
 
+	e->addComponent<CAI>();
 	e->addComponent<CGravity>();
 	e->addComponent<CState>();
 	e->getComponent<CState>().state = States::Air;
@@ -200,7 +200,6 @@ void GameScene::addEnemy(std::vector<std::string>& fileEntities) {
 	e->getComponent<CBoundingBox>().size.x = size.x;
 	e->getComponent<CBoundingBox>().size.y = size.y;
 }
-
 
 void GameScene::addDoor(std::vector<std::string>& fileEntities) {
 	sf::Vector2u m_WindowSize = m_GameEngine->getWindow().getSize();
@@ -559,6 +558,7 @@ void GameScene::sDoAction(const Action& action){
 }
 
 void GameScene::sMovement(float dt){
+	// player movement
 	Vec2 playerVel;
 	if (m_Player->getComponent<CInput>().right) {
 		if (m_Player->getComponent<CTransform>().velocity.x < 
@@ -613,6 +613,22 @@ void GameScene::sMovement(float dt){
 		m_Player->getComponent<CTransform>().pos = m_Player->getComponent<CBoundingBox>().size;
 	}
 
+	// enemy movement
+	for (auto& e : m_EntityManager.getEntities(Entities::Enemy)) {
+		if (e->getComponent<CAI>().state == AIStates::Follow) {
+			if (e->getComponent<CTransform>().pos.x <
+				m_Player->getComponent<CTransform>().pos.x) {
+				e->getComponent<CTransform>().velocity.x = 200;
+			}
+			else {
+				e->getComponent<CTransform>().velocity.x = -200;
+			}
+		}
+		else if (e->getComponent<CAI>().state == AIStates::Idle) {
+			e->getComponent<CTransform>().velocity.x = 0;
+		}
+	}
+
 	for (auto& e : m_EntityManager.getEntities()) {
 		e->getComponent<CTransform>().prevPos = e->getComponent<CTransform>().pos;
 		if (e->hasComponent<CGravity>()) {
@@ -639,8 +655,13 @@ void GameScene::sDraggable() {
 }
 
 void GameScene::sAI() {
-	Vec2 eDist;
 	for (auto& e : m_EntityManager.getEntities(Entities::Enemy)) {
+		Vec2 eDist = e->getComponent<CTransform>().pos - m_Player->getComponent<CTransform>().pos;
+		// if the player is far away, do nothing
+		if (len(eDist) > 384.f) {
+			e->getComponent<CTransform>().velocity.x = 0;
+			continue;
+		}
 		for (auto& f : m_EntityManager.getEntities()) {
 			// use m_Player
 			if (f->tag() == Entities::Player) {
@@ -650,29 +671,20 @@ void GameScene::sAI() {
 			if (f->tag() == Entities::Enemy) {
 				continue;
 			}
-			eDist = e->getComponent<CTransform>().pos - m_Player->getComponent<CTransform>().pos;
-			// if the player is far away, do nothing
-			if (len(eDist) > 384.f) {
-				e->getComponent<CTransform>().velocity.x = 0;
-				continue;
-			}
 			// check if there is an entity between the player and the enemy
-			Physics::Intersect entityIntersect = Physics::EntityIntersection(
-				e->getComponent<CTransform>().pos,
-				m_Player->getComponent<CTransform>().pos,
-				f
-			);
+			Vec2 a = m_Player->getComponent<CTransform>().pos;
+			Vec2 b = e->getComponent<CTransform>().pos;
+			if (a.x > b.x) {
+				Vec2 temp = a;
+				a = b;
+				b = temp;
+			}
+			Physics::Intersect entityIntersect = Physics::EntityIntersection(a, b, f);
 			if (entityIntersect.isIntersect) {
-				e->getComponent<CTransform>().velocity.x = 0;
+				e->getComponent<CAI>().state = AIStates::Idle;
 			}
 			else {
-				if (e->getComponent<CTransform>().pos.x <
-					m_Player->getComponent<CTransform>().pos.x) {
-					e->getComponent<CTransform>().velocity.x = 150.f;
-				}
-				else {
-					e->getComponent<CTransform>().velocity.x = -150.f;
-				}
+				e->getComponent<CAI>().state = AIStates::Follow;
 			}
 		}
 	}
@@ -693,14 +705,10 @@ void GameScene::sCollision(){
 					if (prevOverlap.y > 0 && e->getComponent<CTransform>().prevPos.x >
 						f->getComponent<CTransform>().prevPos.x) {
 						e->getComponent<CTransform>().pos.x += overlap.x;
-						//e->getComponent<CTransform>().velocity.x =
-						//	-e->getComponent<CTransform>().velocity.x;
 					}
 					if (prevOverlap.y > 0 && e->getComponent<CTransform>().prevPos.x <
 						f->getComponent<CTransform>().prevPos.x) {
 						e->getComponent<CTransform>().pos.x -= overlap.x;
-						//e->getComponent<CTransform>().velocity.x =
-						//	-e->getComponent<CTransform>().velocity.x;
 					}
 					if (prevOverlap.x > 0) {
 						e->getComponent<CTransform>().pos.y -= overlap.y;
@@ -721,6 +729,7 @@ void GameScene::sCollision(){
 		// collision with player
 		Vec2 overlap = Physics::GetOverlap(e, m_Player);
 		if (overlap.x > 0.0f && overlap.y > 0.0f) {
+			e->getComponent<CAI>().state = AIStates::Idle;
 			m_Player->getComponent<CTransform>().pos = Vec2(1, 1);
 			m_Player->getComponent<CState>().state = States::Air;
 		}
@@ -755,10 +764,6 @@ void GameScene::sCollision(){
 					m_Player->getComponent<CTransform>().pos.x -= overlap.x;
 				}
 			}
-			//else if(m_Player->getComponent<CTransform>().pos.y > 
-			//	m_GameEngine->getWindow().getSize().y - m_Player->getComponent<CBoundingBox>().size.y) {
-			//	m_Player->getComponent<CState>().state = States::Air;
-			//}
 		}
 		if (e->tag() == Entities::Tile) {
 			Vec2 overlap = Physics::GetOverlap(m_Player, e);
