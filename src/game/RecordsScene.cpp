@@ -61,17 +61,26 @@ void RecordsScene::getRecords() {
 	}
 
 	while (std::getline(contents, lvl)) {
-		m_Levels.push_back(lvl);
+		std::string kv;
+		std::stringstream ss(lvl);
+		std::vector<std::string> temp;
+		while (std::getline(ss, kv, ' ')) {
+			temp.push_back(kv);
+		}
+		m_Levels[temp[0]].push_back(std::stof(temp[1]));
+		temp.clear();
 	}
 
-
-	for (int i = 0; i < m_Levels.size(); i++) {
+	int i = 0;
+	for (auto& kvPair : m_Levels) {
+		std::sort(kvPair.second.begin(), kvPair.second.end());
 		sf::Text customLvl;
 		customLvl.setCharacterSize(50);
 		customLvl.setFont(m_GameEngine->getAssets().getFont(Fonts::Main));
-		customLvl.setString(m_Levels[i]);
+		customLvl.setString(kvPair.first + " " + std::to_string(kvPair.second[0]));
 		customLvl.setPosition(25, 100 + i * 50);
 		m_Records.push_back(customLvl);
+		i++;
 	}
 }
 
