@@ -10,6 +10,8 @@ int main() {
 	}
 	catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
+		std::cout << "Press any key to exit...";
+		std::cin.get();
 	}
 
 	return 0;
