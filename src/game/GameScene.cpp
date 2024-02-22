@@ -51,7 +51,7 @@ void GameScene::init(const std::string& levelPath) {
 	registerAction(sf::Keyboard::D, Actions::Right);
 	registerAction(sf::Keyboard::J, Actions::Shoot);
 	registerAction(sf::Keyboard::K, Actions::Dash);
-	registerAction(sf::Keyboard::Space, Actions::Interact);
+	//registerAction(sf::Keyboard::Space, Actions::Interact);
 	registerAction(sf::Keyboard::Escape, Actions::Quit);
 	registerAction(sf::Keyboard::B, Actions::ToggleBox);
 	registerAction(sf::Keyboard::P, Actions::Pause);
@@ -368,6 +368,7 @@ void GameScene::update(float dt){
 		sDraggable();
 		sCollision();
 		sAnimation();
+		exitLevel();
 	}
 	sRender();
 }
@@ -534,9 +535,9 @@ void GameScene::sDoAction(const Action& action){
 			Vec2 mpos = action.getPos();
 			m_mPos = windowToWorld(mpos);
 		}
-		if (action.getName() == Actions::Interact) {
+		/*if (action.getName() == Actions::Interact) {
 			exitLevel();
-		}
+		}*/
 	}
 	else if (action.getType() == Actions::Stop) {
 		if (action.getName() == Actions::Right) {
@@ -583,18 +584,18 @@ void GameScene::sMovement(float dt){
 	if (m_Player->getComponent<CInput>().up &&
 		m_Player->getComponent<CTransform>().velocity.y >= 0 &&
 		m_Player->getComponent<CState>().state == States::Ground) {
-		playerVel.y = -650;
+		playerVel.y = -750;
 		m_Player->getComponent<CState>().state = States::Air;
 	}else if (m_Player->getComponent<CInput>().up &&
 		m_Player->getComponent<CState>().state == States::Climb) {
 		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft) {
 			playerVel.y = -450;
-			playerVel.x = -800;
+			playerVel.x = -600;
 			m_Player->getComponent<CState>().state = States::Air;
 		}
 		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Climb) {
 			playerVel.y = -450;
-			playerVel.x = 800;
+			playerVel.x = 600;
 			m_Player->getComponent<CState>().state = States::Air;
 		}
 	}
@@ -732,6 +733,27 @@ void GameScene::sCollision(){
 			e->getComponent<CAI>().state = AIStates::Idle;
 			m_Player->getComponent<CTransform>().pos = Vec2(1, 1);
 			m_Player->getComponent<CState>().state = States::Air;
+		}
+	}
+
+	// bullet collisions
+	for (auto& b : m_EntityManager.getEntities(Entities::Bullet)) {
+		// collision with floor entities
+		for (auto& f : m_EntityManager.getEntities(Entities::Floor)) {
+			Vec2 overlap = Physics::GetOverlap(b, f);
+			if (overlap.x > 0.0f && overlap.y > 0.0f) {
+				b->destroy();
+				break;
+			}
+		}
+
+		// collsion with climbable entities
+		for (auto& c : m_EntityManager.getEntities(Entities::Climbable)) {
+			Vec2 overlap = Physics::GetOverlap(b, c);
+			if (overlap.x > 0.0f && overlap.y > 0.0f) {
+				b->destroy();
+				break;
+			}
 		}
 	}
 
