@@ -45,7 +45,7 @@ std::vector<AnimationData> initializeAnimationData() {
 	data[Animations::Tile].duration = 1;
 
 	data[Animations::Explosion].frameCount = 4;
-	data[Animations::Explosion].duration = 5;
+	data[Animations::Explosion].duration = 1;
 
 	data[Animations::Enemy].frameCount = 1;
 	data[Animations::Enemy].duration = 60;
