@@ -67,7 +67,7 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addTexture(Textures::DoorExit, "graphics/dungeonDoorClosed.png");
 	m_GameEngine->getAssets().addTexture(Textures::QuestionBox, "graphics/questionBoxAnimation.png");
 	m_GameEngine->getAssets().addTexture(Textures::Climbable, "graphics/climbableWall.png");
-	m_GameEngine->getAssets().addTexture(Textures::Explosion, "graphics/shittyExplosion.png");
+	m_GameEngine->getAssets().addTexture(Textures::Explosion, "graphics/kiBlastExplode.png");
 	m_GameEngine->getAssets().addTexture(Textures::Enemy, "graphics/dungeonEnemy.png");
 	m_GameEngine->getAssets().addTexture(Textures::Background, "graphics/dungeonBackground-version2.png");
 	m_GameEngine->getAssets().getTexture(Textures::Background).setRepeated(true);
@@ -438,18 +438,14 @@ void GameScene::sAnimation() {
 	}
 	else if (m_Player->getComponent<CState>().state == States::Climb) {
 		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run || 
-			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Jump) {
-			if (m_Player->getComponent<CTransform>().velocity.x > 0) {
-				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::ClimbLeft));
-			}
-			//m_Player->getComponent<CAnimation>().animation.setRepeat(true);
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Jump ||
+			m_Player->getComponent<CTransform>().velocity.x > 0) {
+			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::ClimbLeft));
 		}
 		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
-			m_Player->getComponent<CAnimation>().animation.getType() == Animations::JumpLeft) {
-			if (m_Player->getComponent<CTransform>().velocity.x < 0) {
-				m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Climb));
-			}
-			//m_Player->getComponent<CAnimation>().animation.setRepeat(true);
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::JumpLeft ||
+			m_Player->getComponent<CTransform>().velocity.x < 0) {
+			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Climb));
 		}
 		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft) {
 			if (m_Player->getComponent<CInput>().left ||
@@ -994,7 +990,7 @@ void GameScene::spawnBullet() {
 	e->addComponent<CLifespan>();
 	e->getComponent<CLifespan>().total = 50.f;
 	e->addComponent<CBoundingBox>();
-	e->getComponent<CBoundingBox>().size.x = size.y / 2.f;
+	e->getComponent<CBoundingBox>().size.x = size.y * 1.5f;
 	e->getComponent<CBoundingBox>().size.y = size.y / 2.f;
 }
 
