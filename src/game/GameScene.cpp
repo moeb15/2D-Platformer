@@ -639,23 +639,41 @@ void GameScene::sCollision(){
 		}
 		// collisions with floor entities
 		for (auto& f : m_EntityManager.getEntities(Entities::Floor)) {
-			if (f->tag() == Entities::Floor) {
-				Vec2 overlap = Physics::GetOverlap(e, f);
-				Vec2 prevOverlap = Physics::GetPreviousOverlap(e, f);
-				if (overlap.x > 0.0f && overlap.y > 0.0f) {
-					if (prevOverlap.y > 0 && e->getComponent<CTransform>().prevPos.x >
-						f->getComponent<CTransform>().prevPos.x) {
-						e->getComponent<CTransform>().pos.x += overlap.x;
-					}
-					if (prevOverlap.y > 0 && e->getComponent<CTransform>().prevPos.x <
-						f->getComponent<CTransform>().prevPos.x) {
-						e->getComponent<CTransform>().pos.x -= overlap.x;
-					}
-					if (prevOverlap.x > 0) {
-						e->getComponent<CTransform>().pos.y -= overlap.y;
-						e->getComponent<CTransform>().velocity.y = 0;
-						e->getComponent<CState>().state = States::Ground;
-					}
+			Vec2 overlap = Physics::GetOverlap(e, f);
+			Vec2 prevOverlap = Physics::GetPreviousOverlap(e, f);
+			if (overlap.x > 0.0f && overlap.y > 0.0f) {
+				if (prevOverlap.y > 0 && e->getComponent<CTransform>().prevPos.x >
+					f->getComponent<CTransform>().prevPos.x) {
+					e->getComponent<CTransform>().pos.x += overlap.x;
+				}
+				if (prevOverlap.y > 0 && e->getComponent<CTransform>().prevPos.x <
+					f->getComponent<CTransform>().prevPos.x) {
+					e->getComponent<CTransform>().pos.x -= overlap.x;
+				}
+				if (prevOverlap.x > 0) {
+					e->getComponent<CTransform>().pos.y -= overlap.y;
+					e->getComponent<CTransform>().velocity.y = 0;
+					e->getComponent<CState>().state = States::Ground;
+				}
+			}
+		}
+		// collisions with climable entities
+		for (auto& c : m_EntityManager.getEntities(Entities::Climbable)) {
+			Vec2 overlap = Physics::GetOverlap(e, c);
+			Vec2 prevOverlap = Physics::GetPreviousOverlap(e, c);
+			if (overlap.x > 0.0f && overlap.y > 0.0f) {
+				if (prevOverlap.y > 0 && e->getComponent<CTransform>().prevPos.x >
+					c->getComponent<CTransform>().prevPos.x) {
+					e->getComponent<CTransform>().pos.x += overlap.x;
+				}
+				if (prevOverlap.y > 0 && e->getComponent<CTransform>().prevPos.x <
+					c->getComponent<CTransform>().prevPos.x) {
+					e->getComponent<CTransform>().pos.x -= overlap.x;
+				}
+				if (prevOverlap.x > 0) {
+					e->getComponent<CTransform>().pos.y -= overlap.y;
+					e->getComponent<CTransform>().velocity.y = 0;
+					e->getComponent<CState>().state = States::Ground;
 				}
 			}
 		}
@@ -742,7 +760,7 @@ void GameScene::sCollision(){
 					e->getComponent<CTransform>().prevPos.y) {
 					m_Player->getComponent<CTransform>().pos.y += overlap.y;
 					m_Player->getComponent<CTransform>().velocity.y = 0;
-					//m_Player->getComponent<CState>().state = States::Air;
+					m_Player->getComponent<CState>().state = States::Air;
 				}
 				if (prevOverlap.y > 0 && m_Player->getComponent<CTransform>().prevPos.x >
 					e->getComponent<CTransform>().prevPos.x) {
