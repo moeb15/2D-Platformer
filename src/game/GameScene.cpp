@@ -379,16 +379,7 @@ void GameScene::sAnimation() {
 		}
 	}
 	else if (m_Player->getComponent<CState>().state == States::Climb) {
-		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run || 
-			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Jump ||
-			m_Player->getComponent<CTransform>().velocity.x > 0) {
-			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::ClimbLeft));
-		}
-		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
-			m_Player->getComponent<CAnimation>().animation.getType() == Animations::JumpLeft ||
-			m_Player->getComponent<CTransform>().velocity.x < 0) {
-			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Climb));
-		}
+		// check whether the player wants to detach from the climbable entity
 		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft) {
 			if (m_Player->getComponent<CInput>().left ||
 				(m_Player->getComponent<CInput>().left &&
@@ -408,6 +399,17 @@ void GameScene::sAnimation() {
 				//m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Jump));
 				//m_Player->getComponent<CAnimation>().animation.setRepeat(true);
 			}
+		}
+		// check if the player is trying to latch onto the climbable entity
+		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run || 
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Jump ||
+			m_Player->getComponent<CTransform>().velocity.x > 0) {
+			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::ClimbLeft));
+		}
+		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::JumpLeft ||
+			m_Player->getComponent<CTransform>().velocity.x < 0) {
+			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Climb));
 		}
 	}
 
@@ -740,7 +742,7 @@ void GameScene::sCollision(){
 					e->getComponent<CTransform>().prevPos.y) {
 					m_Player->getComponent<CTransform>().pos.y += overlap.y;
 					m_Player->getComponent<CTransform>().velocity.y = 0;
-					m_Player->getComponent<CState>().state = States::Air;
+					//m_Player->getComponent<CState>().state = States::Air;
 				}
 				if (prevOverlap.y > 0 && m_Player->getComponent<CTransform>().prevPos.x >
 					e->getComponent<CTransform>().prevPos.x) {
