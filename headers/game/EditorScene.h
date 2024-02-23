@@ -29,7 +29,6 @@ private:
 	Vec2 windowToWorld(const Vec2& window) const;
 	void loadAssets();
 	void addGround(const Vec2& pos = Vec2(0,0));
-	void addBrick(const Vec2& pos = Vec2(0, 0));
 	void addClimable(const Vec2& pos = Vec2(0, 0));
 	void addDoor(const Vec2& pos = Vec2(0, 0));
 	void addEnemy(const Vec2& pos = Vec2(0, 0));
