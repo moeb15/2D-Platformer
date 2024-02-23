@@ -62,10 +62,8 @@ void GameScene::init(const std::string& levelPath) {
 }
 
 void GameScene::loadAssets() {
-	m_GameEngine->getAssets().addTexture(Textures::Brick, "graphics/brickTexture.png");
 	m_GameEngine->getAssets().addTexture(Textures::Ground, "graphics/dungeonGround.png");
 	m_GameEngine->getAssets().addTexture(Textures::DoorExit, "graphics/dungeonDoorClosed.png");
-	m_GameEngine->getAssets().addTexture(Textures::QuestionBox, "graphics/questionBoxAnimation.png");
 	m_GameEngine->getAssets().addTexture(Textures::Climbable, "graphics/climbableWall.png");
 	m_GameEngine->getAssets().addTexture(Textures::Explosion, "graphics/kiBlastExplode.png");
 	m_GameEngine->getAssets().addTexture(Textures::Enemy, "graphics/dungeonEnemy.png");
@@ -97,9 +95,7 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addAnimation(Animations::BlastLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Climb);
 	m_GameEngine->getAssets().addAnimation(Animations::ClimbLeft);
-	m_GameEngine->getAssets().addAnimation(Animations::Tile);
 	m_GameEngine->getAssets().addAnimation(Animations::Ground);
-	m_GameEngine->getAssets().addAnimation(Animations::QuestionBox);
 	m_GameEngine->getAssets().addAnimation(Animations::Explosion);
 	m_GameEngine->getAssets().addAnimation(Animations::Enemy);
 	m_GameEngine->getAssets().addAnimation(Animations::DoorExit);
@@ -251,59 +247,6 @@ void GameScene::addTile(std::vector<std::string>& fileEntities, const std::strin
 		e->getComponent<CBoundingBox>().size.x = size.x;
 		e->getComponent<CBoundingBox>().size.y = size.y;
 	}
-	else if (type == "Brick") {
-		Vec2 posn(std::stoi(fileEntities[2]), std::stoi(fileEntities[3]));
-		sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Brick);
-		Vec2 size(texture.getSize().x, texture.getSize().y);
-
-		auto e = m_EntityManager.addEntity(Entities::Tile);
-		e->addComponent<CDraggable>();
-		e->addComponent<CTransform>();
-		e->getComponent<CTransform>().pos.x = posn.x * size.x;
-		e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 1) * size.y;
-		e->getComponent<CTransform>().has = true;
-
-		e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Tile));
-		e->getComponent<CAnimation>().has = true;
-
-		e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
-			e->getComponent<CTransform>().pos.x,
-			e->getComponent<CTransform>().pos.y
-		));
-		e->getComponent<CAnimation>().animation.setRepeat(true);
-
-
-		e->addComponent<CBoundingBox>();
-		e->getComponent<CBoundingBox>().has = true;
-		e->getComponent<CBoundingBox>().size.x = size.x;
-		e->getComponent<CBoundingBox>().size.y = size.y;
-
-	}
-	else if (type == "QuestionBox") {
-		Vec2 posn(std::stoi(fileEntities[2]), std::stoi(fileEntities[3]));
-		sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::QuestionBox);
-		Vec2 size(texture.getSize().x/4, texture.getSize().y);
-
-		auto e = m_EntityManager.addEntity(Entities::QuestionBox);
-		e->addComponent<CTransform>();
-		e->getComponent<CTransform>().pos.x = posn.x * size.x;
-		e->getComponent<CTransform>().pos.y = m_WindowSize.y - (posn.y + 1) * size.y;
-		e->getComponent<CTransform>().has = true;
-
-		e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::QuestionBox));
-		e->getComponent<CAnimation>().animation.setRepeat(true);
-		e->getComponent<CAnimation>().animation.getSprite().setPosition(sf::Vector2f(
-			e->getComponent<CTransform>().pos.x,
-			e->getComponent<CTransform>().pos.y
-		));
-
-
-		e->addComponent<CBoundingBox>();
-		e->getComponent<CBoundingBox>().has = true;
-		e->getComponent<CBoundingBox>().size.x = size.x;
-		e->getComponent<CBoundingBox>().size.y = size.y;
-
-	}
 	else if (type == "Climbable") {
 		Vec2 posn(std::stoi(fileEntities[2]), std::stoi(fileEntities[3]));
 		sf::Texture& texture = m_GameEngine->getAssets().getTexture(Textures::Climbable);
@@ -327,7 +270,6 @@ void GameScene::addTile(std::vector<std::string>& fileEntities, const std::strin
 		e->getComponent<CBoundingBox>().has = true;
 		e->getComponent<CBoundingBox>().size.x = size.x;
 		e->getComponent<CBoundingBox>().size.y = size.y;
-
 	}
 }
 
@@ -780,46 +722,6 @@ void GameScene::sCollision(){
 				if (prevOverlap.y > 0 && m_Player->getComponent<CTransform>().prevPos.x <
 					e->getComponent<CTransform>().prevPos.x) {
 					m_Player->getComponent<CTransform>().pos.x -= overlap.x;
-				}
-			}
-		}
-		if (e->tag() == Entities::Tile) {
-			Vec2 overlap = Physics::GetOverlap(m_Player, e);
-			Vec2 prevOverlap = Physics::GetPreviousOverlap(m_Player, e);
-			if (overlap.x > 0.0f && overlap.y > 0.0f) {
-				if (m_Player->getComponent<CTransform>().prevPos.y >
-					e->getComponent<CTransform>().prevPos.y) {
-					e->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Explosion));;
-					e->addComponent<CBoundingBox>();
-					continue;
-				}
-				if (prevOverlap.x > 0) {
-					m_Player->getComponent<CTransform>().pos.y -= overlap.y;
-					m_Player->getComponent<CTransform>().velocity.y = 0;
-					m_Player->getComponent<CState>().state = States::Ground;
-				}
-				else if (prevOverlap.y > 0) {
-					m_Player->getComponent<CTransform>().pos.x -= overlap.x;
-				}
-			}
-		}
-		if (e->tag() == Entities::QuestionBox) {
-			Vec2 overlap = Physics::GetOverlap(m_Player, e);
-			Vec2 prevOverlap = Physics::GetPreviousOverlap(m_Player, e);
-			if (overlap.x > 0.0f && overlap.y > 0.0f) {
-				if (m_Player->getComponent<CTransform>().prevPos.y >
-					e->getComponent<CTransform>().prevPos.y) {
-					m_Player->getComponent<CTransform>().pos.y += overlap.y;
-					m_Player->getComponent<CTransform>().velocity.y = 0;
-					continue;
-				}
-				if (prevOverlap.x > 0) {
-					m_Player->getComponent<CTransform>().pos.y -= overlap.y;
-					m_Player->getComponent<CTransform>().velocity.y = 0;
-					m_Player->getComponent<CState>().state = States::Ground;
-				}
-				else if (prevOverlap.y > 0) {
-					m_Player->getComponent<CTransform>().pos.x += overlap.x;
 				}
 			}
 		}
