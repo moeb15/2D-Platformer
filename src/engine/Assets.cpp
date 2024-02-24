@@ -99,7 +99,7 @@ void Assets::addFont(Fonts::ID id, const std::string& file) {
 	m_Fonts.add(id, file);
 }
 
-void Assets::addSound(Sounds::ID id, const std::string& file) {
+void Assets::addSoundBuffer(Sounds::ID id, const std::string& file) {
 	m_Sounds.add(id, file);
 }
 
@@ -111,10 +111,8 @@ sf::Font& Assets::getFont(Fonts::ID id) {
 	return m_Fonts.get(id);
 }
 
-sf::Sound& Assets::getSound(Sounds::ID id) {
-	sf::Sound sound;
-	sound.setBuffer(m_Sounds.get(id));
-	return sound;
+sf::SoundBuffer& Assets::getSoundBuffer(Sounds::ID id) {
+	return m_Sounds.get(id);
 }
 
 Animation& Assets::getAnimation(Animations::Type type) {

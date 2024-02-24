@@ -18,12 +18,12 @@ public:
 	Assets();
 
 	void addTexture(Textures::ID, const std::string&);
-	void addSound(Sounds::ID, const std::string&);
+	void addSoundBuffer(Sounds::ID, const std::string&);
 	void addFont(Fonts::ID, const std::string&);
 	void addAnimation(Animations::Type);
 
 	sf::Texture& getTexture(Textures::ID);
 	sf::Font& getFont(Fonts::ID);
-	sf::Sound& getSound(Sounds::ID);
+	sf::SoundBuffer& getSoundBuffer(Sounds::ID);
 	Animation& getAnimation(Animations::Type);
 };
