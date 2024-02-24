@@ -39,7 +39,8 @@ namespace Fonts {
 
 namespace Sounds {
 	enum ID{
-		Main,
+		Blast,
+		Jump,
 	};
 }
 
