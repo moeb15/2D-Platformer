@@ -15,6 +15,10 @@ void GameEngine::init() {
 	m_Window.setFramerateLimit(60);
 	m_Assets.addFont(Fonts::Main, "fonts/ByteBounce.ttf");
 	m_Assets.addFont(Fonts::Edit, "fonts/Roboto-Bold.ttf");
+	m_Assets.addSoundBuffer(Sounds::Main, "sounds/background_music.wav");
+	m_BackgroundMusic.setBuffer(m_Assets.getSoundBuffer(Sounds::Main));
+	m_BackgroundMusic.setVolume(10);
+	m_BackgroundMusic.setLoop(true);
 
 	std::shared_ptr<MenuScene> menuScene(
 		new MenuScene(this));
@@ -26,6 +30,7 @@ void GameEngine::run() {
 	ImGui::SFML::Init(m_Window);
 	sf::Time dt;
 	sf::Clock clock;
+	m_BackgroundMusic.play();
 	while (m_Running) {
 		dt = clock.restart();
 		sUserInput();

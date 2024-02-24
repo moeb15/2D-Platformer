@@ -17,6 +17,7 @@ private:
 	Assets m_Assets;
 	Scenes::Type m_CurrentScene;
 	bool m_Running;
+	sf::Sound m_BackgroundMusic;
 
 public:
 	GameEngine();
