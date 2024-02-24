@@ -19,6 +19,8 @@ private:
 	std::string m_LevelTitle;
 	sf::Time m_GameTime;
 	sf::Text m_TimeText;
+	sf::Sound m_KiBlast;
+	sf::Sound m_Jumping;
 
 public:
 	GameScene(GameEngine* gameEngine, const std::string& levelPath);

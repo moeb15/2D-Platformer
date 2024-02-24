@@ -62,6 +62,7 @@ void GameScene::init(const std::string& levelPath) {
 }
 
 void GameScene::loadAssets() {
+	//textures
 	m_GameEngine->getAssets().addTexture(Textures::Ground, "graphics/dungeonGround.png");
 	m_GameEngine->getAssets().addTexture(Textures::DoorExit, "graphics/dungeonDoorClosed.png");
 	m_GameEngine->getAssets().addTexture(Textures::Climbable, "graphics/climbableWall.png");
@@ -83,6 +84,15 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addTexture(Textures::Climb, "graphics/megamanGohanClimb.png");
 	m_GameEngine->getAssets().addTexture(Textures::ClimbLeft, "graphics/megamanGohanClimbLeft.png");
 
+	//sounds
+	m_GameEngine->getAssets().addSoundBuffer(Sounds::Blast, "sounds/kiBlast.wav");
+	m_GameEngine->getAssets().addSoundBuffer(Sounds::Jump, "sounds/jump.wav");
+	m_KiBlast.setBuffer(m_GameEngine->getAssets().getSoundBuffer(Sounds::Blast));
+	m_Jumping.setBuffer(m_GameEngine->getAssets().getSoundBuffer(Sounds::Jump));
+
+	m_KiBlast.setVolume(50);
+
+	//animations
 	m_GameEngine->getAssets().addAnimation(Animations::Idle);
 	m_GameEngine->getAssets().addAnimation(Animations::IdleLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Run);
@@ -439,6 +449,7 @@ void GameScene::sDoAction(const Action& action){
 		if (action.getName() == Actions::Jump) {
 			if (m_Player->getComponent<CState>().state != States::Air) {
 				m_Player->getComponent<CState>().state = States::Air;
+				m_Jumping.play();
 				m_Player->getComponent<CInput>().up = true;
 			}
 			else {
@@ -449,6 +460,7 @@ void GameScene::sDoAction(const Action& action){
 			&& m_EntityManager.getEntities(Entities::Bullet).size() <= 3
 			&& m_Player->getComponent<CState>().state != States::Climb) {
 			m_Player->getComponent<CInput>().shoot = true;
+			m_KiBlast.play();
 			spawnBullet();
 		}
 		else {

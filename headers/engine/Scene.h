@@ -2,6 +2,7 @@
 #include "EntityManager.h"
 #include "Action.h"
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <map>
 #include <memory>
 
