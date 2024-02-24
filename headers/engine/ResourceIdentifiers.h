@@ -41,6 +41,7 @@ namespace Sounds {
 	enum ID{
 		Blast,
 		Jump,
+		Main,
 	};
 }
 
