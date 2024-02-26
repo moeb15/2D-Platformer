@@ -471,7 +471,8 @@ void GameScene::sDoAction(const Action& action){
 			m_Player->getComponent<CInput>().left = true;
 		}
 		if (action.getName() == Actions::Jump) {
-			if (m_Player->getComponent<CState>().state != States::Air) {
+			if (m_Player->getComponent<CState>().state != States::Air &&
+				m_Player->getComponent<CState>().state != States::AirDash) {
 				m_Player->getComponent<CState>().state = States::Air;
 				m_Jumping.play();
 				m_Player->getComponent<CInput>().up = true;
