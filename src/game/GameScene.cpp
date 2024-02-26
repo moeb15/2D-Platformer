@@ -429,11 +429,13 @@ void GameScene::sAnimation() {
 		// check if the player is trying to latch onto the climbable entity
 		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run || 
 			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Jump ||
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::AirDash ||
 			m_Player->getComponent<CTransform>().velocity.x > 0) {
 			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::ClimbLeft));
 		}
 		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
 			m_Player->getComponent<CAnimation>().animation.getType() == Animations::JumpLeft ||
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::AirDashLeft ||
 			m_Player->getComponent<CTransform>().velocity.x < 0) {
 			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Climb));
 		}
