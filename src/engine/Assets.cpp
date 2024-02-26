@@ -68,6 +68,12 @@ Textures::ID toTextureID(Animations::Type type) {
 	case Animations::ClimbLeft:
 		return Textures::ClimbLeft;
 
+	case Animations::AirDash:
+		return Textures::AirDash;
+
+	case Animations::AirDashLeft:
+		return Textures::AirDashLeft;
+
 	case Animations::Climbable:
 		return Textures::Climbable;
 	}

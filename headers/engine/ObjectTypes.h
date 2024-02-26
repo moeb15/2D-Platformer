@@ -30,6 +30,7 @@ namespace Actions {
 		Down,
 		Jump,
 		Dash,
+		AirDash,
 		Shoot,
 		Quit,
 		Select,
@@ -66,6 +67,8 @@ namespace Animations {
 		ShootLeft,
 		Climb,
 		ClimbLeft,
+		AirDash,
+		AirDashLeft,
 		Blast,
 		BlastLeft,
 		Tile,
@@ -86,6 +89,7 @@ namespace States {
 		Air,
 		Ground,
 		Climb,
+		AirDash,
 	};
 }
 

@@ -14,6 +14,8 @@ namespace Textures {
 		ShootLeft,
 		Climb,
 		ClimbLeft,
+		AirDash,
+		AirDashLeft,
 		Brick,
 		Ground,
 		Gravel,
