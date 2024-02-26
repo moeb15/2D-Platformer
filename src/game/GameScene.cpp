@@ -51,6 +51,7 @@ void GameScene::init(const std::string& levelPath) {
 	registerAction(sf::Keyboard::D, Actions::Right);
 	registerAction(sf::Keyboard::J, Actions::Shoot);
 	registerAction(sf::Keyboard::K, Actions::Dash);
+	registerAction(sf::Keyboard::L, Actions::AirDash);
 	//registerAction(sf::Keyboard::Space, Actions::Interact);
 	registerAction(sf::Keyboard::Escape, Actions::Quit);
 	registerAction(sf::Keyboard::B, Actions::ToggleBox);
@@ -83,6 +84,8 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addTexture(Textures::BlastLeft, "graphics/kiBlast-SheetLeft.png");
 	m_GameEngine->getAssets().addTexture(Textures::Climb, "graphics/megamanGohanClimb.png");
 	m_GameEngine->getAssets().addTexture(Textures::ClimbLeft, "graphics/megamanGohanClimbLeft.png");
+	m_GameEngine->getAssets().addTexture(Textures::AirDash, "graphics/megamanGohanDash.png");
+	m_GameEngine->getAssets().addTexture(Textures::AirDashLeft, "graphics/megamanGohanDashLeft.png");
 
 	//sounds
 	m_GameEngine->getAssets().addSoundBuffer(Sounds::Blast, "sounds/kiBlast.wav");
@@ -105,6 +108,8 @@ void GameScene::loadAssets() {
 	m_GameEngine->getAssets().addAnimation(Animations::BlastLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Climb);
 	m_GameEngine->getAssets().addAnimation(Animations::ClimbLeft);
+	m_GameEngine->getAssets().addAnimation(Animations::AirDash);
+	m_GameEngine->getAssets().addAnimation(Animations::AirDashLeft);
 	m_GameEngine->getAssets().addAnimation(Animations::Ground);
 	m_GameEngine->getAssets().addAnimation(Animations::Explosion);
 	m_GameEngine->getAssets().addAnimation(Animations::Enemy);
@@ -162,6 +167,7 @@ void GameScene::spawnPlayer() {
 	m_Player->getComponent<CBoundingBox>().size = Vec2(64,80);
 	m_Player->getComponent<CBoundingBox>().has = true;
 
+	m_Player->addComponent<CDash>();
 	m_Player->addComponent<CSpeed>();
 	m_Player->getComponent<CSpeed>().maxSpeed = 400;
 
@@ -379,13 +385,23 @@ void GameScene::sAnimation() {
 	else if (m_Player->getComponent<CState>().state == States::Air) {
 		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Run ||
 			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Idle ||
-			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Climb) {
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::Climb ||
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::AirDash) {
 			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::Jump));
 		}
 		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::RunLeft ||
 			m_Player->getComponent<CAnimation>().animation.getType() == Animations::IdleLeft ||
-			m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft) {
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft ||
+			m_Player->getComponent<CAnimation>().animation.getType() == Animations::AirDashLeft) {
 			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::JumpLeft));
+		}
+	}
+	else if (m_Player->getComponent<CState>().state == States::AirDash) {
+		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Jump) {
+			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::AirDash));
+		}
+		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::JumpLeft) {
+			m_Player->addComponent<CAnimation>(m_GameEngine->getAssets().getAnimation(Animations::AirDashLeft));
 		}
 	}
 	else if (m_Player->getComponent<CState>().state == States::Climb) {
@@ -429,6 +445,12 @@ void GameScene::sAnimation() {
 			if (e->getComponent<CAnimation>().animation.hasEnded() && e->tag() != Entities::Player) {
 				e->destroy();
 			}
+			else if (e->getComponent<CAnimation>().animation.hasEnded() && e->tag() == Entities::Player) {
+				if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::AirDash ||
+					m_Player->getComponent<CAnimation>().animation.getType() == Animations::AirDashLeft) {
+					m_Player->getComponent<CState>().state = States::Air;
+				}
+			}
 		}
 	}
 }
@@ -467,7 +489,19 @@ void GameScene::sDoAction(const Action& action){
 			m_Player->getComponent<CInput>().shoot = false;
 		}
 		if (action.getName() == Actions::Dash) {
-			m_Player->getComponent<CSpeed>().maxSpeed = 600;
+			if (m_Player->getComponent<CState>().state != States::Air) {
+				m_Player->getComponent<CSpeed>().maxSpeed = 600;
+			}
+			else {
+				m_Player->getComponent<CSpeed>().maxSpeed = 400;
+			}
+		}
+		if (action.getName() == Actions::AirDash) {
+			if (m_Player->getComponent<CState>().state == States::Air &&
+				 !m_Player->getComponent<CDash>().hasDashed) {
+				m_Player->getComponent<CState>().state = States::AirDash;
+				m_Player->getComponent<CDash>().hasDashed = true;
+			}
 		}
 		if (action.getName() == Actions::Pause) {
 			m_Paused = !m_Paused;
@@ -507,52 +541,71 @@ void GameScene::sDoAction(const Action& action){
 		if (action.getName() == Actions::Dash) {
 			m_Player->getComponent<CSpeed>().maxSpeed = 400;
 		}
+	/*	if (action.getName() == Actions::AirDash) {
+			if (m_Player->getComponent<CState>().state == States::AirDash &&
+				m_Player->getComponent<CAnimation>().animation.hasEnded()) {
+				m_Player->getComponent<CState>().state = States::Air;
+			}
+		}*/
 	}
 }
 
 void GameScene::sMovement(float dt){
 	// player movement
 	Vec2 playerVel;
-	if (m_Player->getComponent<CInput>().right) {
-		if (m_Player->getComponent<CTransform>().velocity.x < 
-			m_Player->getComponent<CSpeed>().maxSpeed) {
-			playerVel.x = m_Player->getComponent<CTransform>().velocity.x + 100;
+	if (m_Player->getComponent<CState>().state == States::AirDash) {
+		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::AirDash) {
+			playerVel.x = 1200;
+			playerVel.y = 0;
 		}
-		else {
-			playerVel.x = m_Player->getComponent<CSpeed>().maxSpeed;
-		}
-	}
-
-	if (m_Player->getComponent<CInput>().left) {
-		if (m_Player->getComponent<CTransform>().velocity.x > 
-			-m_Player->getComponent<CSpeed>().maxSpeed) {
-			playerVel.x = m_Player->getComponent<CTransform>().velocity.x - 100;
-		}
-		else {
-			playerVel.x = -m_Player->getComponent<CSpeed>().maxSpeed;
-		}
-	}
-
-	if (m_Player->getComponent<CInput>().up &&
-		m_Player->getComponent<CTransform>().velocity.y >= 0 &&
-		m_Player->getComponent<CState>().state == States::Ground) {
-		playerVel.y = -750;
-		m_Player->getComponent<CState>().state = States::Air;
-	}else if (m_Player->getComponent<CInput>().up &&
-		m_Player->getComponent<CState>().state == States::Climb) {
-		if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft) {
-			playerVel.y = -450;
-			playerVel.x = -600;
-			m_Player->getComponent<CState>().state = States::Air;
-		}
-		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Climb) {
-			playerVel.y = -450;
-			playerVel.x = 600;
-			m_Player->getComponent<CState>().state = States::Air;
+		else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::AirDashLeft) {
+			playerVel.x = -1200;
+			playerVel.y = 0;
 		}
 	}
 	else {
-		playerVel.y = m_Player->getComponent<CTransform>().velocity.y;
+		if (m_Player->getComponent<CInput>().right) {
+			if (m_Player->getComponent<CTransform>().velocity.x <
+				m_Player->getComponent<CSpeed>().maxSpeed) {
+				playerVel.x = m_Player->getComponent<CTransform>().velocity.x + 100;
+			}
+			else {
+				playerVel.x = m_Player->getComponent<CSpeed>().maxSpeed;
+			}
+		}
+
+		if (m_Player->getComponent<CInput>().left) {
+			if (m_Player->getComponent<CTransform>().velocity.x >
+				-m_Player->getComponent<CSpeed>().maxSpeed) {
+				playerVel.x = m_Player->getComponent<CTransform>().velocity.x - 100;
+			}
+			else {
+				playerVel.x = -m_Player->getComponent<CSpeed>().maxSpeed;
+			}
+		}
+
+		if (m_Player->getComponent<CInput>().up &&
+			m_Player->getComponent<CTransform>().velocity.y >= 0 &&
+			m_Player->getComponent<CState>().state == States::Ground) {
+			playerVel.y = -750;
+			m_Player->getComponent<CState>().state = States::Air;
+		}
+		else if (m_Player->getComponent<CInput>().up &&
+			m_Player->getComponent<CState>().state == States::Climb) {
+			if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::ClimbLeft) {
+				playerVel.y = -450;
+				playerVel.x = -600;
+				m_Player->getComponent<CState>().state = States::Air;
+			}
+			else if (m_Player->getComponent<CAnimation>().animation.getType() == Animations::Climb) {
+				playerVel.y = -450;
+				playerVel.x = 600;
+				m_Player->getComponent<CState>().state = States::Air;
+			}
+		}
+		else {
+			playerVel.y = m_Player->getComponent<CTransform>().velocity.y;
+		}
 	}
 
 	m_Player->getComponent<CTransform>().velocity = playerVel;
@@ -587,10 +640,15 @@ void GameScene::sMovement(float dt){
 		if (e->hasComponent<CGravity>()) {
 			if (e->hasComponent<CState>() &&
 				e->getComponent<CState>().state == States::Climb) {
-				e->getComponent<CTransform>().velocity.y = 
-					e->getComponent<CTransform>().velocity.y * 0.25;
+				e->getComponent<CTransform>().velocity.y = 50;
 			}
-			e->getComponent<CTransform>().velocity.y += e->getComponent<CGravity>().gravity * dt * 0.5f;
+			else if (e->hasComponent<CState>() &&
+				e->getComponent<CState>().state == States::AirDash) {
+				e->getComponent<CTransform>().velocity.y = 0;
+			}
+			else {
+				e->getComponent<CTransform>().velocity.y += e->getComponent<CGravity>().gravity * dt * 0.5f;
+			}
 		}
 		e->getComponent<CTransform>().pos = e->getComponent<CTransform>().pos +
 			e->getComponent<CTransform>().velocity * dt;
@@ -740,6 +798,7 @@ void GameScene::sCollision(){
 					m_Player->getComponent<CTransform>().pos.y -= overlap.y;
 					m_Player->getComponent<CTransform>().velocity.y = 0;
 					m_Player->getComponent<CState>().state = States::Ground;
+					m_Player->getComponent<CDash>().hasDashed = false;
 				}
 				if (prevOverlap.x > 0 && m_Player->getComponent<CTransform>().prevPos.y >
 					e->getComponent<CTransform>().prevPos.y) {
@@ -767,6 +826,7 @@ void GameScene::sCollision(){
 					m_Player->getComponent<CTransform>().pos.y -= overlap.y;
 					m_Player->getComponent<CTransform>().velocity.y = 0;
 					m_Player->getComponent<CState>().state = States::Ground;
+					m_Player->getComponent<CDash>().hasDashed = false;
 				}
 				else if (prevOverlap.x > 0 && m_Player->getComponent<CTransform>().prevPos.y >
 					e->getComponent<CTransform>().prevPos.y) {
@@ -778,11 +838,13 @@ void GameScene::sCollision(){
 					e->getComponent<CTransform>().prevPos.x) {
 					m_Player->getComponent<CTransform>().pos.x += overlap.x;
 					m_Player->getComponent<CState>().state = States::Climb;
+					m_Player->getComponent<CDash>().hasDashed = false;
 				}
 				else if (prevOverlap.y > 0 && m_Player->getComponent<CTransform>().prevPos.x <
 					e->getComponent<CTransform>().prevPos.x) {
 					m_Player->getComponent<CTransform>().pos.x -= overlap.x;
 					m_Player->getComponent<CState>().state = States::Climb;
+					m_Player->getComponent<CDash>().hasDashed = false;
 				}
 			}
 		}
