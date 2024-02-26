@@ -121,3 +121,9 @@ public:
 	AIStates::Type state = AIStates::Idle;
 	bool has = false;
 };
+
+class CDash {
+public:
+	bool hasDashed = false;
+	bool has = false;
+};
