@@ -501,6 +501,7 @@ void GameScene::sDoAction(const Action& action){
 		if (action.getName() == Actions::AirDash) {
 			if (m_Player->getComponent<CState>().state == States::Air &&
 				 !m_Player->getComponent<CDash>().hasDashed) {
+				m_Jumping.play();
 				m_Player->getComponent<CState>().state = States::AirDash;
 				m_Player->getComponent<CDash>().hasDashed = true;
 			}
